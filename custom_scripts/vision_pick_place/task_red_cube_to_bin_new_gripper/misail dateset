@@ -1,0 +1,45 @@
+import openpyxl
+import statistics
+import matplotlib.pyplot as plt
+
+WINDOW = 5  # 이동평균 윈도우: 직전 n개 실제값 평균으로 다음 값 예측
+
+wb = openpyxl.load_workbook(
+    "/home/youngchan/Downloads/1.학생 배포자료/미사일 시뮬레이터.xlsm", data_only=True
+)
+ws = wb["시뮬레이터"]
+actual = [
+    v for (v,) in ws.iter_rows(min_row=2, max_row=101, min_col=2, max_col=2, values_only=True)
+]
+
+predicted = []
+for i in range(len(actual)):
+    window = actual[max(0, i - WINDOW):i]
+    predicted.append(statistics.mean(window) if window else actual[0])
+
+diff = [abs(a - p) for a, p in zip(actual, predicted)]
+mean_diff = statistics.mean(diff)
+max_diff = max(diff)
+min_diff = min(diff)
+print(f"평균 차이 값: {mean_diff:.4f}")
+print(f"최대 차이 값: {max_diff:.4f}")
+print(f"최소 차이 값: {min_diff:.4f}")
+
+x = range(1, len(actual) + 1)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+ax1.plot(x, actual, label="Actual Trajectory")
+ax1.plot(x, predicted, label=f"Predicted (MA{WINDOW})")
+ax1.set_title("Missile Trajectory vs Predicted Model")
+ax1.legend()
+
+ax2.plot(x, diff, color="tab:red", label="Difference")
+ax2.axhline(mean_diff, color="green", linestyle="--", label=f"Mean diff={mean_diff:.2f}")
+ax2.axhline(max_diff, color="orange", linestyle="--", label=f"Max diff={max_diff:.2f}")
+ax2.axhline(min_diff, color="purple", linestyle="--", label=f"Min diff={min_diff:.2f}")
+ax2.set_title("Difference (|Actual - Predicted|)")
+ax2.legend()
+
+plt.tight_layout()
+plt.savefig("/home/youngchan/Downloads/missile_trajectory.png")
+plt.show()
