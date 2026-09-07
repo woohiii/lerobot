@@ -104,13 +104,13 @@ def search(arm: SOArm101, cap, detect_fn, name: str) -> bool:
     return False
 
 
-def coarse_center(arm: SOArm101, cap, detect_fn) -> bool:
+def coarse_center(arm: SOArm101, cap, detect_fn, target_px: tuple[float, float] | None = None) -> bool:
     """Direction-agnostic hill-climb for a target found near a frame edge,
     where the small finite-difference Jacobian probe would lose it off-
     frame before ever computing a Jacobian. No-op (one distance check) if
     already close."""
     axis, sign = 0, 1.0
-    target_px = np.array(config.GRASP_TARGET_PX)
+    target_px = np.array(config.GRASP_TARGET_PX if target_px is None else target_px)
     for _ in range(config.COARSE_MAX_ITERS):
         det, _ = get_pixel(cap, detect_fn, tries=6)
         if det is None:
@@ -167,7 +167,14 @@ def estimate_jacobian(arm: SOArm101, cap, detect_fn) -> np.ndarray | None:
     return J
 
 
-def fine_servo(arm: SOArm101, cap, detect_fn, name: str, skip_search: bool = False) -> bool:
+def fine_servo(
+    arm: SOArm101,
+    cap,
+    detect_fn,
+    name: str,
+    skip_search: bool = False,
+    target_px: tuple[float, float] | None = None,
+) -> bool:
     """Closed-loop pixel-error servo onto GRASP_TARGET_PX (the gripper's own
     jaw position in-frame, not the raw image center - see config.py).
     Convergence gate is a REAL-WORLD distance (PHYSICAL_TOLERANCE_M), not
@@ -187,12 +194,12 @@ def fine_servo(arm: SOArm101, cap, detect_fn, name: str, skip_search: bool = Fal
     showed moving unpredictably into large joint-lag collisions."""
     if not skip_search and not search(arm, cap, detect_fn, name):
         return False
-    if not coarse_center(arm, cap, detect_fn):
+    if not coarse_center(arm, cap, detect_fn, target_px):
         return False
 
     J = estimate_jacobian(arm, cap, detect_fn)
     if J is None:
-        if not search(arm, cap, detect_fn, name) or not coarse_center(arm, cap, detect_fn):
+        if not search(arm, cap, detect_fn, name) or not coarse_center(arm, cap, detect_fn, target_px):
             return False
         J = estimate_jacobian(arm, cap, detect_fn)
         if J is None:
@@ -200,7 +207,7 @@ def fine_servo(arm: SOArm101, cap, detect_fn, name: str, skip_search: bool = Fal
     J_inv = np.linalg.inv(J)
 
     _log(TaskState.FINE_SERVO, f"{name} 중앙 정렬 시작")
-    target_px = np.array(config.GRASP_TARGET_PX)
+    target_px = np.array(config.GRASP_TARGET_PX if target_px is None else target_px)
     stable = lost_streak = stall_count = reestimates = 0
     best_err = float("inf")
     prev_px = prev_step = None
@@ -276,9 +283,13 @@ def fine_servo(arm: SOArm101, cap, detect_fn, name: str, skip_search: bool = Fal
     return False
 
 
-def descend_and_grasp(arm: SOArm101) -> bool:
+def descend_and_grasp(arm: SOArm101, click_px: tuple[float, float] | None = None) -> bool:
     cur = arm.gripper_xyz()
-    cube_height_m = perception.estimate_cube_height_m()
+    cube_height_m = (
+        perception.estimate_cube_height_m()
+        if click_px is None
+        else perception.estimate_height_at_px_m(*click_px)
+    )
     if cube_height_m is not None:
         target_z = min(config.TABLE_Z + cube_height_m - config.DESCEND_MARGIN_M, cur[2])
         _log(TaskState.DESCEND, f"Astra 높이 추정 {cube_height_m*1000:.1f}mm -> 1차 목표 z={target_z:.4f}")

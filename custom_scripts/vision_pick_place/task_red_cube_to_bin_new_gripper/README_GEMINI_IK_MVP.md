@@ -9,7 +9,7 @@
 
 ## 안전 제약
 
-- 오른팔 보정값은 왼팔 값의 placeholder다. 기본 오른쪽 클릭은 반드시 거부하며, 오른팔의 `calibrate_grasp.py`, `probe_table_height_manual.py`, `measure_grasp_target_px.py` 완료 뒤에만 `--allow-unverified-right`를 쓴다.
+- 왼팔 보정값은 오른팔 값의 placeholder다 (2026-09-07, `uv run lerobot-find-port`로 물리적으로 확인: `/dev/so101_follower`=오른팔, 아직 없는 쪽=왼팔 - config.py의 해당 날짜 주석 참고). 기본 왼쪽 클릭은 반드시 거부하며, 왼팔의 `calibrate_grasp.py`, `probe_table_height_manual.py`, `measure_grasp_target_px.py` 완료 뒤에만 `--allow-unverified-left`를 쓴다.
 - `e`: 양팔 `release_torque()`를 즉시 호출하고, emergency stop 뒤에는 finally 블록의 홈 복귀 명령도 보내지 않는다.
 - `q`/ESC: 정상 종료로 취급하여 각 팔을 기록한 시작 홈 XYZ로 복귀 시도한다.
 - `max_relative_target`, 소프트웨어 관절 제한, 펌웨어 전류/토크 보호, 관절 지연 기반 충돌 감지를 `kinematics.py`의 기존 구현으로 재사용한다.
@@ -24,18 +24,18 @@ uv run python3 -m py_compile click_grasp_bimanual.py
 uv run python3 click_grasp_bimanual.py --help
 ```
 
-실물 시험 명령:
+실물 시험 명령 (포트는 `uv run lerobot-find-port`로 매번 직접 확인 - ttyACM 번호는 USB 재연결마다 바뀔 수 있음):
 
 ```bash
 uv run python3 click_grasp_bimanual.py \
-  --left-port /dev/ttyACM0 \
-  --right-port /dev/ttyACM1
+  --left-port /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14029976-if00 \
+  --right-port /dev/so101_follower
 ```
 
-첫 시험에서는 오른쪽 클릭이 경고만 출력하고 모터 명령을 전혀 보내지 않는지 먼저 확인한다. 이어서 안전 작업영역 안의 물체를 왼쪽 클릭하고, 비정상 움직임이면 `e`를 눌러 양팔 토크가 풀린 뒤 추가 홈 복귀 명령이 없는지 확인한다.
+첫 시험에서는 왼쪽 클릭이 경고만 출력하고 모터 명령을 전혀 보내지 않는지 먼저 확인한다. 이어서 안전 작업영역 안의 물체를 오른쪽 클릭하고, 비정상 움직임이면 `e`를 눌러 양팔 토크가 풀린 뒤 추가 홈 복귀 명령이 없는지 확인한다.
 
 ## 알려진 미해결 사항
 
-- 오른팔 실제 보정 전에는 오른팔 pick을 활성화하지 않는다.
+- 왼팔 실제 보정 전에는 왼팔 pick을 활성화하지 않는다.
 - 현재 Astra RGB의 Gemini 포인트 탐지는 별도 `~/so101-bimanual-teleop/camera_preview_gemini.py`에서 동작한다. 카메라/USB 장치 경합을 피하려면 Gemini preview와 이 로봇 제어 스크립트를 동시에 실행하지 않는다.
 - Gemini 응답 시간은 약 5–6초다. 영상 렌더링은 논블로킹이지만 라벨 자체는 그 주기로 갱신된다.

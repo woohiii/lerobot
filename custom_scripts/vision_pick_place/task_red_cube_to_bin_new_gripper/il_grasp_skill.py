@@ -67,7 +67,7 @@ from lerobot.utils.feature_utils import build_dataset_frame, combine_feature_dic
 
 import config
 import gripper
-from kinematics import CollisionDetected
+from kinematics import CollisionDetected, JointStallGuard
 
 if TYPE_CHECKING:
     from kinematics import SOArm101
@@ -223,9 +223,7 @@ def run_grasp_skill(
     period_s = 1.0 / fps
     deadline = time.perf_counter() + max_seconds
     tick = 0
-    stall_count = 0
-    last_good = arm.get_joint_deg()
-    prev_actual = last_good
+    stall_guard = JointStallGuard.start(arm, min_motion_deg=STALL_MOTION_EPS_DEG)
 
     # HARD deadline: whatever the policy outputs, the loop cannot outlive it.
     while time.perf_counter() < deadline:
@@ -255,22 +253,7 @@ def run_grasp_skill(
         tick += 1
 
         if tick % config.STALL_CHECK_EVERY == 0:
-            actual = arm.get_joint_deg()
-            n_arm = len(config.ARM_JOINTS)
-            lag = float(np.max(np.abs(actual[:n_arm] - target[:n_arm])))
-            moved = float(np.max(np.abs(actual[:n_arm] - prev_actual[:n_arm])))
-            prev_actual = actual
-            if lag > config.STALL_THRESHOLD_DEG and moved < STALL_MOTION_EPS_DEG:
-                stall_count += 1
-            else:
-                stall_count, last_good = 0, actual
-            if stall_count >= config.STALL_CONSECUTIVE:
-                arm.send_joint_deg(last_good)
-                time.sleep(0.3)
-                raise CollisionDetected(
-                    f"il_grasp_skill aborted: joint lag {lag:.1f}deg with no motion for "
-                    f"{config.STALL_CONSECUTIVE} consecutive checks - retreated to last known-good pose."
-                )
+            stall_guard.check(target)
 
         elapsed = time.perf_counter() - loop_start
         if elapsed < period_s:

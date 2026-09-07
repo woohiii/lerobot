@@ -1,6 +1,8 @@
 """Bimanual click-to-grasp: generalizes click_pick_place.py to both arms of a
-bi_so_follower, pick-only (no bin/place step - deliberate scope cut, this is
-for grasping whatever the user points at, one arm at a time, and holding it).
+bi_so_follower. Grasps whatever the user points at, then places it at the
+fixed, hand-measured config.BIN_POSE_XYZ for that arm (see
+measure_bin_pose.py) - if that hasn't been measured yet (still None), falls
+back to the old behavior of just holding the object in place.
 
 Live Astra RGB view stays up the whole session. Left-click anywhere -> queue
 a grasp for the LEFT arm at that pixel; right-click -> queue one for the
@@ -9,14 +11,19 @@ in-flight grasp just waits in the queue - video keeps refreshing regardless.
 'e' cuts torque on BOTH arms immediately (emergency stop, no scripted motion
 after). 'q'/ESC quits normally, both arms return to their recorded home xyz.
 
-The right arm's calibration (config.RIGHT_OVERRIDES: TABLE_Z, wrist-cam grasp
-target px, gripper thresholds) is an unverified placeholder copy of the left
-arm's until measured - right-side clicks refuse to move by default; pass
---allow-unverified-right once calibrate_grasp.py / probe_table_height_manual.py
-/ measure_grasp_target_px.py have been run for the right arm.
+The left arm's calibration (config.LEFT_OVERRIDES: TABLE_Z, wrist-cam grasp
+target px, gripper thresholds) is an unverified placeholder copy of the right
+arm's until measured - left-side clicks refuse to move by default; pass
+--allow-unverified-left once calibrate_grasp.py / probe_table_height_manual.py
+/ measure_grasp_target_px.py have been run for the left arm.
+
+--left-port/--right-port must be the PHYSICALLY left/right arm's port (see
+config.py's 2026-09-07 note - confirmed via `uv run lerobot-find-port`, don't
+guess): as of that check, right = /dev/so101_follower (serial 5B3D042390),
+left = /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14029976-if00.
 
 Run: uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/click_grasp_bimanual.py \\
-    --left-port /dev/so101_follower_left --right-port /dev/so101_follower_right
+    --left-port /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14029976-if00 --right-port /dev/so101_follower
 """
 
 from __future__ import annotations
@@ -26,6 +33,7 @@ import argparse
 import cv2
 
 import config
+import gripper
 import perception
 import task_state_machine as tsm
 from kinematics import CollisionDetected, SOArm101
@@ -41,16 +49,19 @@ def handle_click(
     y: int,
     arm_left: SOArm101,
     arm_right: SOArm101,
-    allow_unverified_right: bool,
+    allow_unverified_left: bool,
     home_xyz_left,
     home_xyz_right,
+    grasp_strategy: str = "legacy",
+    policy_path: str | None = None,
+    cap=None,
 ) -> None:
-    if side == "right" and not allow_unverified_right:
+    if side == "left" and not allow_unverified_left:
         print(
-            "[click_grasp_bimanual] 오른팔 보정값이 아직 미검증 상태입니다 (config.RIGHT_OVERRIDES는 "
-            "왼팔 값의 placeholder 복사본 - TABLE_Z, 손목캠 파지 목표 픽셀, 그리퍼 임계값 모두 미측정). "
+            "[click_grasp_bimanual] 왼팔 보정값이 아직 미검증 상태입니다 (config.LEFT_OVERRIDES는 "
+            "오른팔 값의 placeholder 복사본 - TABLE_Z, 손목캠 파지 목표 픽셀, 그리퍼 임계값 모두 미측정). "
             "calibrate_grasp.py / probe_table_height_manual.py / measure_grasp_target_px.py로 "
-            "오른팔을 먼저 보정한 뒤, --allow-unverified-right 옵션으로 다시 실행하세요."
+            "왼팔을 먼저 보정한 뒤, --allow-unverified-left 옵션으로 다시 실행하세요."
         )
         return
 
@@ -75,12 +86,38 @@ def handle_click(
         return
 
     # No generic per-object detector for an arbitrary clicked object, so this
-    # skips fine_servo's wrist-cam closed-loop refinement entirely and goes
-    # straight to a blind descend - deliberate scope cut, not an oversight.
-    grasped = tsm.descend_and_grasp(arm)
+    # skips fine_servo's wrist-cam closed-loop refinement entirely. The IL
+    # branch matches task_state_machine.run(): free-space hover stays IK, and
+    # only the contact-rich grasp goes to the learned skill.
+    if grasp_strategy == "il":
+        import il_grasp_skill
+
+        grasped = il_grasp_skill.run_grasp_skill(arm, cap, policy_path)
+    else:
+        grasped = tsm.descend_and_grasp(arm, click_px=(x, y))
     if grasped:
-        print(f"[click_grasp_bimanual] {side} 팔: 파지 성공 - 상승 후 제자리 유지")
+        print(f"[click_grasp_bimanual] {side} 팔: 파지 성공 - 상승")
         arm.move_z(config.LIFT_M, steps=20, step_delay_s=0.05)
+
+        if config.BIN_POSE_XYZ is None:
+            print(
+                f"[click_grasp_bimanual] {side} 팔: BIN_POSE_XYZ 미측정 - measure_bin_pose.py로 측정 후 "
+                "config.py에 반영하세요. 잡은 채로 제자리 유지합니다."
+            )
+            return
+
+        print(f"[click_grasp_bimanual] {side} 팔: 쓰레기통으로 이동 후 놓습니다")
+        try:
+            arm.move_to_xyz_converge(config.BIN_POSE_XYZ, tolerance_m=0.015, max_iters=20)
+        except CollisionDetected as e:
+            print(f"[click_grasp_bimanual] {side} 팔: 쓰레기통 이동 중 충돌 감지 ({e}) - 놓지 않고 정지")
+            return
+        gripper.open_gripper(arm)
+        print(f"[click_grasp_bimanual] {side} 팔: 투기 완료 - 홈으로 복귀합니다")
+        try:
+            arm.move_to_xyz_converge(home_xyz, tolerance_m=0.015, max_iters=20)
+        except CollisionDetected as e:
+            print(f"[click_grasp_bimanual] {side} 팔: 홈 복귀 중 충돌 감지: {e}")
         return
 
     print(f"[click_grasp_bimanual] {side} 팔: 파지 실패 - 홈으로 복귀합니다")
@@ -94,9 +131,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--left-port", required=True, help="왼쪽 팔 follower 포트")
     parser.add_argument("--right-port", required=True, help="오른쪽 팔 follower 포트")
-    parser.add_argument("--allow-unverified-right", action="store_true",
-                         help="오른팔 보정값이 미검증 placeholder여도 오른팔 클릭을 허용")
+    parser.add_argument("--allow-unverified-left", action="store_true",
+                         help="왼팔 보정값이 미검증 placeholder여도 왼팔 클릭을 허용")
+    parser.add_argument("--grasp-strategy", choices=["legacy", "il"], default="legacy",
+                        help="양팔 모두에 적용할 파지 전략 (기본: %(default)r)")
+    parser.add_argument("--policy-path", default=None, help="grasp-strategy=il일 때 필요한 학습된 ACT 체크포인트 경로")
     args = parser.parse_args()
+
+    if args.grasp_strategy == "il" and not args.policy_path:
+        parser.error("--grasp-strategy il requires --policy-path")
 
     # BiSOFollower derives each sub-arm's calibration id as f"{id}_left"/f"{id}_right"
     # from THIS id (see bi_so_follower.py) - plain SOFollowerConfig itself has no
@@ -149,8 +192,8 @@ def main() -> None:
             # click_pick_place.py, accepted tradeoff, not fixed here.
             if click_queue:
                 side, x, y = click_queue.pop(0)
-                handle_click(side, x, y, arm_left, arm_right, args.allow_unverified_right,
-                             home_xyz_left, home_xyz_right)
+                handle_click(side, x, y, arm_left, arm_right, args.allow_unverified_left,
+                             home_xyz_left, home_xyz_right, args.grasp_strategy, args.policy_path, cap)
             key = cv2.waitKey(30) & 0xFF
             if key == ord("e"):
                 arm_left.release_torque()

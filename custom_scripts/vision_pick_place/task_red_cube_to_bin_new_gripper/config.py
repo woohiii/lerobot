@@ -23,6 +23,11 @@ VISION_DIR = TASK_DIR.parent  # ~/lerobot/custom_scripts/vision_pick_place - sha
 # reverted per that note's own instruction - today's teleoperate session drove
 # leader (/dev/so101_leader) and follower (/dev/so101_follower) simultaneously
 # without error, so the follower's own board is confirmed alive again.
+# 2026-09-07: confirmed via `uv run lerobot-find-port` (physical unplug/replug,
+# not a guess) that /dev/so101_follower (serial 5B3D042390) is the physically
+# RIGHT follower arm - every constant below this point was measured through
+# this exact port, so it's the right arm's calibration, not the left's. See
+# LEFT_OVERRIDES below for the physically-left arm (still unmeasured).
 FOLLOWER_PORT = "/dev/so101_follower"
 
 JOINT_LIMITS_DEG = {
@@ -68,9 +73,11 @@ IK_ITERATIONS = 6  # placo's solver needs several passes fed back as the next gu
 # see that script's docstring) - real contact xyz (0.161, -0.006, -0.0083).
 # z is ~8.3mm lower than the old gripper's contact plane (~0.000) - consistent
 # with a physically longer new jaw. Same 3mm-margin convention as before.
-TABLE_Z = -0.0053
+TABLE_Z = -0.0042  # 3mm 여유 포함
 CUBE_HEIGHT_MIN_M = 0.005  # below this, an Astra height reading is treated as noise
 CUBE_HEIGHT_MAX_M = 0.06  # above this, treated as a bad reading (this cube is a few cm)
+# TODO: measure/tune on the real Astra scene; RGB-pixel radius sampled around a click for depth height estimation.
+HEIGHT_SAMPLE_RADIUS_PX = 8
 DESCEND_MARGIN_M = 0.005  # stop this far short of the Astra-estimated cube top - let
 # contact detection (not the depth estimate) catch the last few mm
 
@@ -90,6 +97,14 @@ SEARCH_HOVER_XYZ = (0.23, 0.0, 0.13)
 # pose the user physically drove the arm to and confirmed as "초기위치" once
 # today) in case a caller needs a value before ever connecting.
 REFERENCE_IDLE_XYZ = (0.10259099, 0.00435801, -0.02739574)
+
+# Fixed hover pose above the trash bin - click_grasp_bimanual.py's place step
+# moves here and opens the gripper after a successful grasp+lift. The bin is
+# stationary hardware on the trolley, so (unlike the clicked pick target)
+# this is measured once by hand, not detected live - see measure_bin_pose.py
+# (same hand-guided-then-read-FK method as TABLE_Z). None until measured;
+# the place step refuses to run (holds the object instead) while this is None.
+BIN_POSE_XYZ: tuple[float, float, float] | None = (0.3666, -0.0423, 0.0098)  # 2026-09-07: right-arm hand-guided bin pose
 
 # --- Camera / vision -----------------------------------------------------
 FRAME_W, FRAME_H = 640, 480
@@ -119,6 +134,7 @@ GRASP_TARGET_PX = (221.0, 362.0)
 WRIST_FRAME_PATH = "/tmp/vsp_wrist.png"
 ASTRA_RGB_FRAME_PATH = "/tmp/vsp_astra_rgb.png"
 ASTRA_DEPTH_MM_PATH = "/tmp/vsp_astra_depth_mm.npy"
+ASTRA_IR_FRAME_PATH = "/tmp/vsp_astra_ir.png"
 FRAME_STALE_TIMEOUT_S = 5.0
 
 HOMOGRAPHY_PATH = VISION_DIR / "homography.json"
@@ -227,33 +243,47 @@ GRIPPER_STALL_CONSECUTIVE = 2  # consecutive no-progress iterations before baili
 # --- Retry -------------------------------------------------------------------
 MAX_GRASP_ATTEMPTS = 3  # per the spec's "실패 시 재시도 로직: 최대 N회"
 
-# --- Right-arm overrides ------------------------------------------------
+# --- Left-arm overrides ------------------------------------------------
 # Physically different arm: different port, different measured table-contact
 # height, gripper jaw thresholds, wrist-cam grasp target pixel, etc. Must be
-# re-measured for the right arm the same way the left arm's values above were
+# re-measured for the left arm the same way the right arm's values above were
 # (calibrate_grasp.py / probe_table_height_manual.py / measure_grasp_target_px.py)
-# before RIGHT is trusted - these are PLACEHOLDER copies of LEFT's values until
-# then, not measured for the right arm yet.
-RIGHT_OVERRIDES = {
-    "FOLLOWER_PORT": FOLLOWER_PORT,  # TODO: measure - placeholder, same as LEFT
-    "TABLE_Z": TABLE_Z,              # TODO: measure - placeholder
+# before LEFT is trusted - these are PLACEHOLDER copies of RIGHT's values until
+# then, not measured for the left arm yet.
+#
+# 2026-09-07: identified via `uv run lerobot-find-port` (user unplugged/replugged
+# each cable) - the flat/default constants above (TABLE_Z, GRASP_TARGET_PX, etc.)
+# were all measured through /dev/so101_follower, which that same check confirmed
+# is the physically-RIGHT follower arm (serial 5B3D042390). So the physically-LEFT
+# follower (serial 5B14029976, /dev/ttyACM3 as of that check) is the one that's
+# actually still unmeasured - this dict (and every "left"/"right" label in this
+# module) is now aligned to PHYSICAL left/right, not to some other convention,
+# specifically so --left-port always means "plug in the physically-left arm here"
+# and can't be silently swapped with --right-port. No stable udev alias exists
+# for this serial yet (only so101_follower/so101_leader are aliased, see
+# /etc/udev/rules.d/99-serial.rules), so the by-id path is used here instead of a
+# raw ttyACMn path to survive port renumbering on replug.
+LEFT_OVERRIDES = {
+    "FOLLOWER_PORT": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14029976-if00",
+    "TABLE_Z": -0.0042,  # 2026-09-07: left-arm hand-guided table contact, 3mm margin
     "CUBE_HEIGHT_MIN_M": CUBE_HEIGHT_MIN_M,
     "CUBE_HEIGHT_MAX_M": CUBE_HEIGHT_MAX_M,
     "DESCEND_MARGIN_M": DESCEND_MARGIN_M,
     "REFERENCE_IDLE_XYZ": REFERENCE_IDLE_XYZ,
-    "GRASP_TARGET_PX": GRASP_TARGET_PX,
-    "WRIST_FRAME_PATH": "/tmp/vsp_wrist_right.png",  # distinct path - camera_hub publishes per-side
+    "GRASP_TARGET_PX": (410.0, 152.0),  # 2026-09-07: left wrist-camera jaw-tip click
+    "WRIST_FRAME_PATH": "/tmp/vsp_wrist_left.png",  # distinct path - camera_hub publishes per-side
+    "BIN_POSE_XYZ": (0.2334, 0.0495, 0.0188),  # 2026-09-07: left-arm hand-guided bin pose
     "ROBOT_EXCLUSION_BBOX_PX": ROBOT_EXCLUSION_BBOX_PX,
     "WRIST_V4L2_CTRLS": WRIST_V4L2_CTRLS,
-    "GRIPPER_EMPTY_CLOSED_PCT": GRIPPER_EMPTY_CLOSED_PCT,
-    "GRASP_DETECT_MARGIN_PCT": GRASP_DETECT_MARGIN_PCT,
+    "GRIPPER_EMPTY_CLOSED_PCT": 1.6,
+    "GRASP_DETECT_MARGIN_PCT": 31.4,
 }
 
-# Snapshot of the original flat (left-arm) values, keyed the same as
-# RIGHT_OVERRIDES, captured now (module load time) before apply_side() can
-# ever run - apply_side("left") restores from this, not from whatever
-# apply_side("right") last left in the globals.
-LEFT_DEFAULTS = {key: globals()[key] for key in RIGHT_OVERRIDES}
+# Snapshot of the original flat (right-arm) values, keyed the same as
+# LEFT_OVERRIDES, captured now (module load time) before apply_side() can
+# ever run - apply_side("right") restores from this, not from whatever
+# apply_side("left") last left in the globals.
+RIGHT_DEFAULTS = {key: globals()[key] for key in LEFT_OVERRIDES}
 
 
 class _SideView:
@@ -271,16 +301,16 @@ class _SideView:
         return globals()[name]
 
 
-_LEFT_VIEW = _SideView({})
-_RIGHT_VIEW = _SideView(RIGHT_OVERRIDES)
+_RIGHT_VIEW = _SideView({})
+_LEFT_VIEW = _SideView(LEFT_OVERRIDES)
 
 
 def for_side(side: str) -> "_SideView":
     """Returns a config view for "left" or "right" - attribute access (e.g.
-    for_side("right").TABLE_Z) resolves to that side's override if one
-    exists, else falls back to this module's flat (left-arm) constants.
+    for_side("left").TABLE_Z) resolves to that side's override if one
+    exists, else falls back to this module's flat (right-arm) constants.
     Existing code that does `import config; config.TABLE_Z` is untouched and
-    keeps meaning "left arm" - for_side() is purely additive for bimanual
+    keeps meaning "right arm" - for_side() is purely additive for bimanual
     callers."""
     if side == "left":
         return _LEFT_VIEW
@@ -293,7 +323,7 @@ def apply_side(side: str) -> None:
     """Overwrites this module's own flat globals (TABLE_Z, GRASP_TARGET_PX,
     etc.) with the given side's values, so task_state_machine.py/
     perception.py/gripper.py's existing bare `config.X` reads pick up the
-    right arm's calibration without any changes to those files. Only safe
+    left arm's calibration without any changes to those files. Only safe
     because the two arms run strictly sequentially in one process (never
     concurrently) - see orchestrator_bimanual.py. Call this BEFORE running a
     given arm's task_state_machine.run(), every time you switch arms.
@@ -304,6 +334,6 @@ def apply_side(side: str) -> None:
     """
     if side not in ("left", "right"):
         raise ValueError(f"unknown side {side!r}, expected 'left' or 'right'")
-    overrides = RIGHT_OVERRIDES if side == "right" else {}
-    for key, value in {**LEFT_DEFAULTS, **overrides}.items():
+    overrides = LEFT_OVERRIDES if side == "left" else {}
+    for key, value in {**RIGHT_DEFAULTS, **overrides}.items():
         globals()[key] = value

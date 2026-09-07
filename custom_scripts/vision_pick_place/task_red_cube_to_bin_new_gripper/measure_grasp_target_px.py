@@ -11,9 +11,14 @@ Needs camera_hub.py already running and publishing to config.WRIST_FRAME_PATH
 (main.py's docstring - separate process, GUI opencv venv).
 
 Run: uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/measure_grasp_target_px.py
+--side right reads the right arm's wrist-cam frame instead (config.apply_side,
+same mechanism orchestrator_bimanual.py uses) - needs camera_hub.py already
+publishing that side's frame too.
 """
 
 from __future__ import annotations
+
+import argparse
 
 import cv2
 
@@ -24,6 +29,11 @@ WINDOW = "click the new gripper's jaw tips - 'q' to finish"
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--side", choices=["left", "right"], default="left", help="측정할 팔 (기본: left)")
+    args = parser.parse_args()
+    config.apply_side(args.side)
+
     cap = PublishedFrameSource(config.WRIST_FRAME_PATH)
     if not cap.isOpened():
         print(
@@ -65,7 +75,8 @@ def main() -> None:
         return
 
     x, y = picked[-1]
-    print(f"\nconfig.py에 반영하세요:\nGRASP_TARGET_PX = ({float(x)}, {float(y)})")
+    target = "GRASP_TARGET_PX" if args.side == "right" else "LEFT_OVERRIDES['GRASP_TARGET_PX']"
+    print(f"\nconfig.py에 반영하세요:\n{target} = ({float(x)}, {float(y)})")
 
 
 if __name__ == "__main__":

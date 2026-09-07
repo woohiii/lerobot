@@ -20,9 +20,14 @@ back the live xyz at actual contact").
 Run: uv run python3 custom_scripts/vision_pick_place/probe_table_height_manual.py
 (needs to live beside robot_control.py, same as manual_grasp_calibration.py -
 that's a bare `from robot_control import ...`, not a package import.)
+
+--port overrides the default (left/original) arm - e.g. for a second arm:
+    uv run python3 custom_scripts/vision_pick_place/probe_table_height_manual.py --port /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14029976-if00
 """
 
 from __future__ import annotations
+
+import argparse
 
 from robot_control import RobotController
 
@@ -30,7 +35,11 @@ PORT = "/dev/so101_follower"
 
 
 def main() -> None:
-    rc = RobotController(port=PORT)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--port", default=PORT, help="측정할 팔의 follower 포트 (기본: 왼팔)")
+    args = parser.parse_args()
+
+    rc = RobotController(port=args.port)
     rc.connect()
     try:
         rc.emergency_stop()

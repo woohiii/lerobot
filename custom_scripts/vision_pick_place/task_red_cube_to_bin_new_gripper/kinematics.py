@@ -17,6 +17,7 @@ per-approach self-calibration instead of an IK constraint.
 from __future__ import annotations
 
 import time
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -31,6 +32,48 @@ class CollisionDetected(RuntimeError):
     """The arm's actual joint position stopped tracking the commanded
     trajectory for several consecutive checks - it hit something. The arm is
     sent back to its last known-good pose before this is raised."""
+
+
+@dataclass
+class JointStallGuard:
+    """Reusable live joint-stall detector for direct policy action loops.
+
+    ``move_to_xyz`` owns the same safety rule for interpolated IK moves. This
+    guard is for policies that issue a fresh joint target each tick: it uses
+    the configured lag/count thresholds, retreats to the last observed good
+    pose, then raises ``CollisionDetected``. ``min_motion_deg`` avoids a
+    false collision while the per-send relative-target clamp is still moving
+    the arm toward a far policy target.
+    """
+
+    arm: "SOArm101"
+    last_good: np.ndarray
+    prev_actual: np.ndarray
+    min_motion_deg: float = 0.5
+    stall_count: int = 0
+
+    @classmethod
+    def start(cls, arm: "SOArm101", min_motion_deg: float = 0.5) -> "JointStallGuard":
+        current = arm.get_joint_deg()
+        return cls(arm=arm, last_good=current.copy(), prev_actual=current, min_motion_deg=min_motion_deg)
+
+    def check(self, target: np.ndarray) -> None:
+        actual = self.arm.get_joint_deg()
+        n_arm = len(config.ARM_JOINTS)
+        lag = float(np.max(np.abs(actual[:n_arm] - target[:n_arm])))
+        moved = float(np.max(np.abs(actual[:n_arm] - self.prev_actual[:n_arm])))
+        self.prev_actual = actual
+        if lag > config.STALL_THRESHOLD_DEG and moved < self.min_motion_deg:
+            self.stall_count += 1
+        else:
+            self.stall_count, self.last_good = 0, actual
+        if self.stall_count >= config.STALL_CONSECUTIVE:
+            self.arm.send_joint_deg(self.last_good)
+            time.sleep(0.3)
+            raise CollisionDetected(
+                f"policy action aborted: joint lag {lag:.1f}deg with no motion for "
+                f"{config.STALL_CONSECUTIVE} consecutive checks - retreated to last known-good pose."
+            )
 
 
 def clamp_joint_deg(joint_deg: np.ndarray) -> np.ndarray:
@@ -92,8 +135,9 @@ class SOArm101:
         given, connect() skips connecting it (the caller is expected to have
         already connected the parent, which connects both sub-arms)."""
         self._owns_robot = robot is None
+        robot_id = "follower_left" if port == config.LEFT_OVERRIDES["FOLLOWER_PORT"] else "follower"
         self.robot = robot if robot is not None else SOFollower(
-            SOFollowerRobotConfig(port=port, id="follower", use_degrees=True,
+            SOFollowerRobotConfig(port=port, id=robot_id, use_degrees=True,
                                    max_relative_target=config.MAX_RELATIVE_TARGET_DEG))
         self.kin = build_kinematics()
 

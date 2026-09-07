@@ -10,12 +10,13 @@ switch - see config.py's apply_side docstring.
 
 Camera devices are NOT opened here, same convention as main.py: camera_hub.py
 must already be running and publishing both wrist frames (config.WRIST_FRAME_PATH
-for left, its right-arm override for right) before this starts.
+for right, its left-arm override for left) before this starts.
 
 Run (ports have no hardcoded default - this hardware has a known port-drift
-problem on USB replug):
+problem on USB replug; use the PHYSICALLY correct port per `uv run
+lerobot-find-port`, don't guess - see config.py's 2026-09-07 note):
   uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/orchestrator_bimanual.py \\
-      --left-port /dev/so101_follower_left --right-port /dev/so101_follower_right
+      --left-port /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14029976-if00 --right-port /dev/so101_follower
 """
 
 from __future__ import annotations
@@ -51,8 +52,8 @@ def run_one_side(bi: BiSOFollower, side: str, grasp_strategy: str, policy_path: 
 
 def main() -> bool:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--left-port", required=True, help="왼쪽 팔 follower 포트 (예: /dev/so101_follower_left)")
-    parser.add_argument("--right-port", required=True, help="오른쪽 팔 follower 포트 (예: /dev/so101_follower_right)")
+    parser.add_argument("--left-port", required=True, help="물리적으로 왼쪽인 팔의 follower 포트 (lerobot-find-port로 확인)")
+    parser.add_argument("--right-port", required=True, help="물리적으로 오른쪽인 팔의 follower 포트 (lerobot-find-port로 확인)")
     parser.add_argument("--grasp-strategy", choices=["legacy", "il"], default="legacy",
                          help="양팔 모두에 적용할 파지 전략 (기본: %(default)r)")
     parser.add_argument("--policy-path", default=None, help="grasp-strategy=il일 때 필요한 학습된 ACT 체크포인트 경로")

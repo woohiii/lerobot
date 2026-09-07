@@ -4,8 +4,9 @@
 Two jobs at once:
   1. Shows a combined RGB | WRIST window with the same red-cube / black-bin
      detection overlay the control script uses, so you can watch what it sees.
-  2. Publishes each frame to /tmp/vsp_rgb.png and /tmp/vsp_wrist.png (atomic
-     write via temp-file + rename) so other scripts (visual servoing,
+  2. Publishes each frame to /tmp/vsp_rgb.png, /tmp/vsp_wrist.png, and
+     /tmp/vsp_wrist_left.png (atomic write via temp-file + rename) so other
+     scripts (visual servoing,
      calibration) - which run in the OTHER venv, the one with feetech-servo-
      sdk but headless opencv - can read the latest frame without opening the
      camera device itself. Two processes can't both hold a UVC device open
@@ -50,6 +51,7 @@ from cube_detector import detect_black_bin, detect_red_cube, draw_detection, is_
 # reason (v4l2-ctl missing, etc).
 RGB_INDEX = find_camera_index("USB Camera")
 WRIST_INDEX = find_camera_index("USB 2.0 PC Cam")
+WRIST_LEFT_INDEX = find_camera_index("Innomaker-U20CAM-720P")
 
 # 2026-08-26: the wrist cam was badly overexposed (background blown to solid
 # white, real content unrecoverable - confirmed by inspecting saved frames)
@@ -91,13 +93,25 @@ class CameraWorker(threading.Thread):
     `self.vis` under a lock for the main thread's display loop to pick up -
     independent of how fast/slow this particular device is running."""
 
-    def __init__(self, index: int, out_path: str, label: str, annotate_fn, v4l2_ctrls: dict | None = None):
+    def __init__(
+        self,
+        index: int,
+        out_path: str,
+        label: str,
+        annotate_fn,
+        v4l2_ctrls: dict | None = None,
+        filter_corruption: bool = True,
+        fourcc: str | None = None,
+    ):
         super().__init__(daemon=True)
         self.index = index
         self.out_path = out_path
         self.label = label
         self.annotate_fn = annotate_fn
+        self.filter_corruption = filter_corruption
         self.cap = cv2.VideoCapture(index)
+        if fourcc is not None:
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*fourcc))
         if v4l2_ctrls:
             # cv2's CAP_PROP_BRIGHTNESS/etc don't reliably map onto this
             # camera's actual UVC controls through the v4l2 backend - v4l2-ctl
@@ -121,7 +135,7 @@ class CameraWorker(threading.Thread):
                 time.sleep(0.01)
                 continue
             self.total += 1
-            if is_frame_corrupted(frame):
+            if self.filter_corruption and is_frame_corrupted(frame):
                 self.corrupt += 1
                 continue
             atomic_write(self.out_path, frame)
@@ -160,12 +174,26 @@ def annotate_wrist(frame):
 
 def main():
     headless = os.environ.get("CAMERA_HUB_HEADLESS") == "1"
-    print(f"[camera_hub] RGB=/dev/video{RGB_INDEX} WRIST=/dev/video{WRIST_INDEX}")
+    print(f"[camera_hub] RGB=/dev/video{RGB_INDEX} WRIST=/dev/video{WRIST_INDEX} WRIST_LEFT=/dev/video{WRIST_LEFT_INDEX}")
 
     rgb_worker = CameraWorker(RGB_INDEX, "/tmp/vsp_rgb.png", "RGB (cube)", annotate_rgb) if RGB_INDEX is not None else None
     wrist_worker = (
         CameraWorker(WRIST_INDEX, "/tmp/vsp_wrist.png", "WRIST (cube+bin)", annotate_wrist, v4l2_ctrls=WRIST_V4L2_CTRLS)
         if WRIST_INDEX is not None
+        else None
+    )
+    wrist_left_worker = (
+        # is_frame_corrupted is calibrated only for the flaky USB 2.0 PC Cam.
+        # Applying it to the Innomaker rejects its intact frames as false positives.
+        CameraWorker(
+            WRIST_LEFT_INDEX,
+            "/tmp/vsp_wrist_left.png",
+            "WRIST LEFT (cube+bin)",
+            annotate_wrist,
+            filter_corruption=False,
+            fourcc="MJPG",
+        )
+        if WRIST_LEFT_INDEX is not None
         else None
     )
 
@@ -178,8 +206,12 @@ def main():
               "케이블/포트를 확인해주세요. RGB만으로 계속 진행합니다.")
     elif not wrist_worker.isOpened():
         print(f"[camera_hub] 손목캠(/dev/video{WRIST_INDEX})을 열 수 없습니다.")
+    if wrist_left_worker is None:
+        print("[camera_hub] 왼쪽 손목캠을 찾을 수 없습니다 - 오른쪽 손목캠만으로 계속 진행합니다.")
+    elif not wrist_left_worker.isOpened():
+        print(f"[camera_hub] 왼쪽 손목캠(/dev/video{WRIST_LEFT_INDEX})을 열 수 없습니다.")
 
-    workers = [w for w in (rgb_worker, wrist_worker) if w is not None and w.isOpened()]
+    workers = [w for w in (rgb_worker, wrist_worker, wrist_left_worker) if w is not None and w.isOpened()]
     if not workers:
         print("[camera_hub] 사용 가능한 카메라가 없습니다.")
         return

@@ -33,7 +33,9 @@ def set_pct(arm: SOArm101, pct: float, steps: int = 10, step_delay_s: float = 0.
     current = arm.get_joint_deg()
     delta = abs(pct - current[-1])
     if delta > config.MAX_MOVE_DELTA_DEG:
-        raise RuntimeError(f"gripper.set_pct refused: {delta:.1f} delta exceeds {config.MAX_MOVE_DELTA_DEG} cap.")
+        raise RuntimeError(
+            f"gripper.set_pct refused: {delta:.1f} delta exceeds {config.MAX_MOVE_DELTA_DEG} cap."
+        )
     target = current.copy()
     target[-1] = pct
     for i in range(1, steps + 1):
@@ -42,8 +44,14 @@ def set_pct(arm: SOArm101, pct: float, steps: int = 10, step_delay_s: float = 0.
         time.sleep(step_delay_s)
 
 
-def set_pct_converge(arm: SOArm101, pct: float, tolerance: float = 3.0, max_iters: int = 15,
-                      steps: int = 8, step_delay_s: float = 0.03) -> float:
+def set_pct_converge(
+    arm: SOArm101,
+    pct: float,
+    tolerance: float = 3.0,
+    max_iters: int = 15,
+    steps: int = 8,
+    step_delay_s: float = 0.03,
+) -> float:
     """Retry-then-recheck for a target more than MAX_MOVE_DELTA_DEG away -
     re-reads the actual position each iteration and re-issues a fresh
     (<=35pt) delta. Returns the final actual position.
@@ -81,7 +89,17 @@ def close_gripper(arm: SOArm101) -> float:
     return set_pct_converge(arm, 0.0)
 
 
-def is_grasp_success(final_pct: float) -> bool:
+def is_grasp_success(final_pct: float, *, minimum_final_pct: float | None = None) -> bool:
     """final_pct: the return value of close_gripper() - the gripper's actual
-    resting position after commanding fully closed. See module docstring."""
-    return final_pct > config.GRIPPER_EMPTY_CLOSED_PCT + config.GRASP_DETECT_MARGIN_PCT
+    resting position after commanding fully closed. See module docstring.
+
+    ``minimum_final_pct`` is an explicitly calibrated, task-specific
+    threshold for objects whose compression differs from the red cube.  The
+    default preserves the original cube calibration exactly.
+    """
+    threshold = (
+        config.GRIPPER_EMPTY_CLOSED_PCT + config.GRASP_DETECT_MARGIN_PCT
+        if minimum_final_pct is None
+        else minimum_final_pct
+    )
+    return final_pct > threshold

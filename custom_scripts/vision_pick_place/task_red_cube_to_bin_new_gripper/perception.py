@@ -346,3 +346,44 @@ def estimate_cube_height_m(
     if not (config.CUBE_HEIGHT_MIN_M <= height_m <= config.CUBE_HEIGHT_MAX_M):
         return None
     return height_m
+
+
+def estimate_height_at_px_m(
+    px: float,
+    py: float,
+    rgb_path: str = config.ASTRA_RGB_FRAME_PATH,
+    depth_path: str = config.ASTRA_DEPTH_MM_PATH,
+) -> float | None:
+    """Astra-depth height DELTA at an RGB click, independent of object color/shape.
+
+    The clicked RGB-pixel patch is scaled into Astra depth's native resolution;
+    as in estimate_cube_height_m(), the whole-frame table median is subtracted
+    from the patch median and implausible readings return None.
+    """
+    ret, color = PublishedFrameSource(rgb_path).read()
+    if not ret or color is None:
+        return None
+    if not os.path.exists(depth_path) or (time.time() - os.path.getmtime(depth_path)) >= config.FRAME_STALE_TIMEOUT_S:
+        return None
+    try:
+        depth_mm = np.load(depth_path)
+    except (OSError, ValueError):
+        return None
+
+    sx, sy = depth_mm.shape[1] / color.shape[1], depth_mm.shape[0] / color.shape[0]
+    radius = config.HEIGHT_SAMPLE_RADIUS_PX
+    x0, y0 = max(0, int((px - radius) * sx)), max(0, int((py - radius) * sy))
+    x1, y1 = min(depth_mm.shape[1], int((px + radius) * sx)), min(depth_mm.shape[0], int((py + radius) * sy))
+    if x1 <= x0 or y1 <= y0:
+        return None
+
+    patch_valid = depth_mm[y0:y1, x0:x1]
+    patch_valid = patch_valid[patch_valid > 0]
+    table_valid = depth_mm[depth_mm > 0]
+    if patch_valid.size < 5 or table_valid.size < 100:
+        return None
+
+    height_m = (float(np.median(table_valid)) - float(np.median(patch_valid))) / 1000.0
+    if not (config.CUBE_HEIGHT_MIN_M <= height_m <= config.CUBE_HEIGHT_MAX_M):
+        return None
+    return height_m
