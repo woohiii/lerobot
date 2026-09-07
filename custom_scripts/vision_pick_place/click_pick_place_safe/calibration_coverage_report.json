@@ -1,0 +1,27 @@
+{
+  "mode": "OFFLINE_CALIBRATION_COVERAGE_CHECK_NO_HARDWARE",
+  "strict_coverage_pass": false,
+  "targets": {
+    "grasp_center": {
+      "pixel": [
+        364,
+        153
+      ],
+      "inside_strict_calibration_hull": false,
+      "signed_distance_to_hull_px": -35.354714329435346
+    },
+    "drop": {
+      "pixel": [
+        546,
+        147
+      ],
+      "inside_strict_calibration_hull": false,
+      "signed_distance_to_hull_px": -49.57740529058994
+    }
+  },
+  "required_before_real_motion": [
+    "Capture additional camera-to-base calibration points covering the red cube and black-box pixels.",
+    "Validate the new homography with held-out points before any descent."
+  ],
+  "overlay": "/home/youngchan/lerobot/custom_scripts/vision_pick_place/click_pick_place_safe/calibration_coverage.png"
+}

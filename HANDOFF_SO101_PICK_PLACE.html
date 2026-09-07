@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>SO-101 빨간 큐브 픽앤플레이스 인수인계</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.65; max-width: 900px; margin: 40px auto; padding: 0 24px; color: #202124; }
+    code, pre { background: #f4f4f4; border-radius: 5px; }
+    code { padding: 2px 5px; }
+    pre { padding: 14px; overflow-x: auto; }
+    .warning { border-left: 4px solid #d93025; padding: 10px 14px; background: #fff4f2; }
+    li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <h1>SO-101 빨간 큐브 → 검은 박스 인수인계</h1>
+  <p>작성일: 2026-09-02 (Asia/Seoul)</p>
+
+  <h2>하드웨어</h2>
+  <ul>
+    <li>팔로워: <code>/dev/ttyACM0</code> (ACM-0)</li>
+    <li>리더: <code>/dev/ttyACM1</code> (ACM-1)</li>
+    <li>Astra S: OpenNI2/Orbbec 전용 장치 <code>2bc5:0402</code>; <code>/dev/video*</code>로 열지 않음</li>
+    <li>손목 카메라 실제 영상 노드: <code>/dev/video4</code> (640×480 YUYV); <code>/dev/video5</code>는 metadata 노드</li>
+    <li>Astra와 손목 카메라는 각각 한 프로세스만 장치 점유 가능</li>
+  </ul>
+
+  <h2>현재 상태</h2>
+  <ul>
+    <li>현재 카메라/로봇 프로세스는 종료 상태.</li>
+    <li>마지막 손목 정렬 시 오차 악화 안전 게이트가 작동해 토크를 해제함.</li>
+    <li>홈 자세는 읽기 전용으로 <code>home_pose_readonly.json</code>에 저장됨.</li>
+    <li>큐브 위 안전 고도 접근은 완료했으나, 하강·그리퍼 닫기·열기는 아직 수행하지 않음.</li>
+  </ul>
+
+  <h2>안전 규칙</h2>
+  <div class="warning"><strong>물리 이동 전 반드시 작업공간을 비우고, 이상 시 즉시 비상 정지할 준비를 한다.</strong></div>
+  <ol>
+    <li><code>safe_torque_enable.py --enable-torque --arm-supported</code>로 현재 자세를 동기화한 뒤 저토크(35%)로 고정한다.</li>
+    <li>모션은 안전 루틴을 사용하고 관절 명령 간격은 최대 3°로 제한한다.</li>
+    <li>온도 65°C 초과, 전압 9.0–14.0V 밖, 추종오차 초과 시 모든 토크를 해제한다.</li>
+    <li>하강 전 손목 영상 폐루프 정렬과 테이블/충돌 확인을 반드시 통과한다.</li>
+    <li>Astra 깊이값을 절대 base-Z로 사용하지 않는다.</li>
+    <li>토크 해제 후 팔이 중력으로 내려갈 수 있으므로, 재시작 전 FK 높이를 다시 읽는다.</li>
+  </ol>
+
+  <h2>중요한 파일</h2>
+  <ul>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/safe_torque_enable.py</code></li>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/safe_hover_approach.py</code></li>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/safe_wrist_probe.py</code></li>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/safe_wrist_align.py</code></li>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/capture_home_readonly.py</code></li>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/home_pose_readonly.json</code></li>
+    <li><code>custom_scripts/vision_pick_place/click_pick_place_safe/wrist_jaw_center.json</code> — jaw 중심 [238, 360]</li>
+    <li><code>custom_scripts/vision_pick_place/astra_s_ir_depth_wrist_live.py</code> — IR/Depth/손목 3분할</li>
+  </ul>
+
+  <h2>재현 명령</h2>
+  <pre><code># 읽기 전용 홈 확인
+uv run python custom_scripts/vision_pick_place/click_pick_place_safe/capture_home_readonly.py
+
+# 안전 토크 고정
+uv run python custom_scripts/vision_pick_place/click_pick_place_safe/safe_torque_enable.py --enable-torque --arm-supported
+
+# Astra RGB+Depth 게시
+ASTRA_LIVE_HEADLESS=1 /home/youngchan/lerobot_song_venv/bin/python custom_scripts/vision_pick_place/astra_s_live.py
+
+# 안전 고도: 먼저 미리보기, 확인 후 실행
+uv run python custom_scripts/vision_pick_place/click_pick_place_safe/safe_hover_approach.py
+uv run python custom_scripts/vision_pick_place/click_pick_place_safe/safe_hover_approach.py --execute --workspace-clear --keep-clear
+
+# 손목 X/Y 시험 프로브
+uv run python custom_scripts/vision_pick_place/click_pick_place_safe/safe_wrist_probe.py --execute --workspace-clear --axis x
+uv run python custom_scripts/vision_pick_place/click_pick_place_safe/safe_wrist_probe.py --execute --workspace-clear --axis y</code></pre>
+
+  <h2>다음 과제</h2>
+  <p>X/Y 프로브로 만든 초기 Jacobian 보정이 1회 정렬에서 오차를 악화시켜 중단되었다. 다음 AI는 각 1–3mm 보정 뒤 실제 픽셀 변화를 사용해 Jacobian을 갱신하는 적응형 루프를 구현해야 한다. 오차가 악화되면 즉시 토크를 해제하고, 현재 자세 기록 후 안전 고도 접근부터 다시 수행한다.</p>
+
+  <h2>텔레옵 포트</h2>
+  <p>검증된 조합: follower <code>/dev/ttyACM0</code>, leader <code>/dev/ttyACM1</code>.</p>
+</body>
+</html>

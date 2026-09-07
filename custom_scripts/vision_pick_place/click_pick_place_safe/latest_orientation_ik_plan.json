@@ -1,0 +1,166 @@
+{
+  "mode": "OFFLINE_IK_REFINEMENT_NO_SERIAL_NO_ACTUATION",
+  "source_plan": "/home/youngchan/lerobot/custom_scripts/vision_pick_place/click_pick_place_safe/latest_plan.json",
+  "home_source": "read_only_observation:/home/youngchan/lerobot/custom_scripts/vision_pick_place/click_pick_place_safe/home_pose_readonly.json",
+  "home_joint_deg": [
+    12.175824175824175,
+    -101.45054945054945,
+    97.36263736263736,
+    78.85714285714286,
+    -84.87912087912088
+  ],
+  "critical_descend_ik_pass": true,
+  "execution_allowed": false,
+  "execution_blockers": [
+    "No real-home joint observation was supplied.",
+    "Camera-to-base extrinsics/workspace require physical calibration validation.",
+    "URDF collision warnings and real table clearance remain unvalidated.",
+    "This program has no actuator implementation."
+  ],
+  "stages": {
+    "pre_grasp": {
+      "model_feasible": true,
+      "joint_deg": [
+        -15.703258046397893,
+        30.76054925705265,
+        -59.088631923743044,
+        90.66211407365319,
+        -157.21102461697095
+      ],
+      "target_rpy_deg": [
+        240.0,
+        -30.0,
+        0.0
+      ],
+      "orientation_weight": 0.001,
+      "position_error_mm": 0.08365366419356503,
+      "model_downward_cosine": 0.8856673708615005
+    },
+    "grasp_descend": {
+      "model_feasible": true,
+      "joint_deg": [
+        -15.710996957527989,
+        24.87739301318171,
+        -0.6333963983707289,
+        38.07884852408345,
+        -157.21102461697095
+      ],
+      "target_rpy_deg": [
+        240.0,
+        -30.0,
+        0.0
+      ],
+      "orientation_weight": 0.0005,
+      "position_error_mm": 0.04078093458166406,
+      "model_downward_cosine": 0.8855767012296064
+    },
+    "grasp_close": {
+      "model_feasible": true,
+      "joint_deg": [
+        -15.710996957777871,
+        24.877393004533015,
+        -0.6333963783452203,
+        38.07884850283437,
+        -157.21102461697095
+      ],
+      "target_rpy_deg": [
+        240.0,
+        -30.0,
+        0.0
+      ],
+      "orientation_weight": 0.0005,
+      "position_error_mm": 0.04078093323507341,
+      "model_downward_cosine": 0.8855767011495727
+    },
+    "lift_hold_4cm": {
+      "model_feasible": true,
+      "joint_deg": [
+        -15.71101586085993,
+        19.50461952158587,
+        -10.034059864352159,
+        52.85227430322668,
+        -157.21102461697095
+      ],
+      "target_rpy_deg": [
+        240.0,
+        -30.0,
+        0.0
+      ],
+      "orientation_weight": 0.0005,
+      "position_error_mm": 0.04078124343597745,
+      "model_downward_cosine": 0.8855766106063577
+    },
+    "pre_place": {
+      "model_feasible": true,
+      "joint_deg": [
+        31.18624608544156,
+        9.459513516336163,
+        -28.44870607034577,
+        78.99499640761518,
+        3.8245327035351973
+      ],
+      "target_rpy_deg": [
+        180.0,
+        30.0,
+        150.0
+      ],
+      "orientation_weight": 0.0005,
+      "position_error_mm": 0.009167872469982293,
+      "model_downward_cosine": 0.8660721558523001
+    },
+    "place_descend": {
+      "model_feasible": true,
+      "joint_deg": [
+        29.617787918172446,
+        57.27450924368211,
+        -59.32609236490541,
+        92.05188173683266,
+        92.40655531843649
+      ],
+      "target_rpy_deg": [
+        180.0,
+        0.0,
+        -120.0
+      ],
+      "orientation_weight": 0.0005,
+      "position_error_mm": 2.0284296459607874e-11,
+      "model_downward_cosine": 0.9999999999627686
+    },
+    "release": {
+      "model_feasible": true,
+      "joint_deg": [
+        29.61778791817244,
+        57.27450924368203,
+        -59.32609236490526,
+        92.05188173683258,
+        92.40655531843649
+      ],
+      "target_rpy_deg": [
+        180.0,
+        0.0,
+        -120.0
+      ],
+      "orientation_weight": 0.0005,
+      "position_error_mm": 2.0287587287665708e-11,
+      "model_downward_cosine": 0.9999999999627686
+    },
+    "retreat": {
+      "model_feasible": true,
+      "joint_deg": [
+        29.6190240823276,
+        4.243512412945198,
+        -19.725173886635833,
+        75.48250913039057,
+        92.45900601618877
+      ],
+      "target_rpy_deg": [
+        210.0,
+        0.0,
+        -120.0
+      ],
+      "orientation_weight": 0.001,
+      "position_error_mm": 0.0060681813281212174,
+      "model_downward_cosine": 0.8660301962372982
+    }
+  }
+}

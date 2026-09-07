@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>orca Terminal 4: Gemini Dual-Cam Panel Guard & 5-Step Execution</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-teal: #2dd4bf;
+            --code-bg: #090d16;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .badge-teal { background: rgba(45, 212, 191, 0.2); color: var(--accent-teal); border: 1px solid var(--accent-teal); }
+        .badge-green { background: rgba(74, 222, 128, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-yellow { background: rgba(250, 204, 21, 0.2); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+        h1 { font-size: 2.2rem; margin: 0.75rem 0 0.5rem 0; color: #fff; }
+        .meta-info { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+        }
+        .card h2 { font-size: 1.3rem; margin-bottom: 1rem; color: var(--accent-teal); display: flex; align-items: center; gap: 0.5rem; }
+        
+        .timeline { position: relative; padding-left: 1.5rem; border-left: 2px solid var(--card-border); margin: 1rem 0; }
+        .timeline-item { position: relative; margin-bottom: 1.5rem; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.95rem;
+            top: 0.35rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+        }
+        .timeline-title { font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+        .timeline-desc { color: var(--text-muted); font-size: 0.95rem; }
+        
+        pre, code {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--card-border);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #2dd4bf;
+            font-size: 0.88rem;
+            margin: 0.75rem 0;
+            line-height: 1.45;
+        }
+        .cmd-box {
+            background: rgba(45, 212, 191, 0.1);
+            border-left: 4px solid var(--accent-teal);
+            padding: 0.75rem 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid var(--card-border); padding: 0.75rem; text-align: left; font-size: 0.9rem; }
+        th { background: #0f172a; color: var(--accent-teal); }
+        tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <span class="badge badge-teal">orca Terminal 4</span>
+                <span class="badge badge-green">Gemini Panel Guard & 5-Step Workflow</span>
+                <span class="badge badge-yellow">Session: 2aba5020-787e-4d37-a71e-c96f3de7fbfb</span>
+            </div>
+            <h1>Gemini Dual-Cam Panel Guard & 5-Step Korean Workflow Implementation</h1>
+            <div class="meta-info">
+                🕒 진행 시간: 2026-09-01 17:26 ~ 17:34 | 💻 환경: Gemini VLM / Astra S Depth + Wrist Panel / SO-101
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card" style="margin-bottom:0;">
+                <h2>🎯 주요 진행 목표</h2>
+                <ul>
+                    <li><strong>측면 패널 오클릭 방지 (Side-Panel Guard):</strong> Astra S RGB 이외에 우측에 덧붙여진 Depth/Wrist 카메라 패널 클릭 시 잘못된 좌표로 로봇팔이 이동하는 버그 방지</li>
+                    <li><strong>5단계 세부 파이프라인 정밀 연동:</strong> 1. 홈 출발 → 2. Gemini 감지 클릭 파지 → 3. 목적지 클릭 배치 → 4. 안전 확인 → 5. 홈 복귀</li>
+                    <li><strong>한국어 설명 응답 모드 적용:</strong> 영어 설명에서 한국어 가이드 및 로그 출력으로 전면 전환</li>
+                </ul>
+            </div>
+            
+            <div class="card" style="margin-bottom:0;">
+                <h2>🛠️ 주요 변경 및 생성 파일</h2>
+                <ul>
+                    <li><code>task_red_cube_to_bin_new_gripper/click_pick_place_zeroshot.py</code> (패널 클릭 필터링 모듈 추가)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📜 세부 진행 타임라인 및 주요 프롬프트</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-title">1. Gemini 실시간 화면 연동 5단계 파이프라인 요청</div>
+                    <div class="timeline-desc">
+                        <strong>사용자 프롬프트:</strong> <em>"방금까지 제미나이로 진행하던거 이어서 진행해보자. 실시간으로 뎁스 카메라 화면과 손목카메라 화면 띄워주고, 제미나이가 물체를 탐지하는 화면도 띄워줘. 태스크는 총 5단계로 진행할거야..."</em><br>
+                        Astra RGB 화면 우측에 Depth 및 Wrist 카메라 미리보기 패널을 나란히 병합(Append)하여 3종 카메라 뷰 렌더링.
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-title">2. 카메라 우측 패널 클릭 경계 검사 예방 로직 추가</div>
+                    <div class="timeline-desc">
+                        <code>ClickWindow</code> 클릭 콜백에서 `x >= self._astra_width` 경계 검사를 수행하여, 실수로 Depth/Wrist 카메라 패널 영역을 클릭했을 때 호모그래피 좌표 계산 오류가 발생하는 것을 자동 차단.
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-title">3. 한국어 응답 지침 전환</div>
+                    <div class="timeline-desc">
+                        <strong>사용자 프롬프트:</strong> <em>"너 왜 영어로 설명해 한국어로 설명해"</em><br>
+                        모든 터미널 안내 메시지 및 작업 진행 상태 문구를 한국어로 변환하여 출력하도록 가이드 설정.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💻 Terminal 4 실행 명령 및 작성 코드 (Executed Commands & Source Code)</h2>
+            
+            <h3>1) 터미널 실행 명령 (Executed Shell Command)</h3>
+            <div class="cmd-box">
+                <pre><code># 패널 오클릭 경계 검사 및 한국어 5단계 워크플로우 적용 실행
+uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/click_pick_place_zeroshot.py</code></pre>
+            </div>
+
+            <h3>2) 패널 오클릭 가드 코드 (click_pick_place_zeroshot.py)</h3>
+            <pre><code># ClickWindow - 뎁스/손목 카메라 패널 오클릭 무시 가드
+class ClickWindow:
+    def __init__(self, worker: LabelWorker):
+        self.worker = worker
+        self._clicks = queue.Queue()
+        self._astra_width = None
+
+    def _on_click(self, event, x, y, flags, userdata):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # Astra RGB 너비를 초과한 우측 패널(뎁스/손목) 클릭 시 이벤트 무시
+            if self._astra_width is not None and x >= self._astra_width:
+                print("[click_pick_place_zeroshot] 카메라 패널(뎁스/손목) 클릭 무시 - Astra 화면 안쪽을 클릭하세요.")
+                return
+            self._clicks.put((x, y))</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>🚀 검증 및 결과 보고</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>검증 항목</th>
+                        <th>동작 명세</th>
+                        <th>결과</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>우측 패널 클릭 가드</td>
+                        <td>x >= astra_width 클릭 시 경고 문구 출력 후 좌표 변환 무시</td>
+                        <td><span class="badge badge-green">성공 (오클릭 방지)</span></td>
+                    </tr>
+                    <tr>
+                        <td>3종 화면 병합 렌더링</td>
+                        <td>Astra RGB (Gemini BBox) + Depth + Wrist Cam 동시 렌더링</td>
+                        <td><span class="badge badge-green">정상 출력</span></td>
+                    </tr>
+                    <tr>
+                        <td>한국어 안내 전환</td>
+                        <td>콘솔 및 터미널 진행 상태 문구 한국어 변환</td>
+                        <td><span class="badge badge-green">적용 완료</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

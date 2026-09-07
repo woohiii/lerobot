@@ -1,0 +1,35 @@
+{
+  "mode": "MARKERLESS_GLOBAL_COARSE_PLUS_WRIST_VISUAL_SERVO",
+  "source": "homography_candidate_ransac_review.json (manual torque-off points, RANSAC inliers only)",
+  "camera_to_base_xy_homography": [
+    [0.0002717170156504024, -0.0018902766524111485, 0.7226788555425324],
+    [-0.0019948655901933106, 0.0002536330667222949, 0.9351714838452653],
+    [0.0013007184197016107, 0.004276373556401828, 1.0]
+  ],
+  "global_stage": {
+    "purpose": "safe-height coarse approach only",
+    "minimum_hover_height_m": 0.13,
+    "must_not_descend": true,
+    "observed_heldout_error_mm": {
+      "cube": 15.76,
+      "box": 28.8
+    }
+  },
+  "wrist_visual_servo_stage": {
+    "required_before_every_descent": true,
+    "required_before_gripper_close": true,
+    "required_before_gripper_open": true,
+    "target": "observed jaw-center pixel, not image center",
+    "maximum_coarse_error_mm": 30.0
+  },
+  "depth_stage": {
+    "purpose": "table/object-height sanity check only",
+    "must_not_be_used_as_absolute_base_z": true
+  },
+  "execution_allowed": false,
+  "blockers": [
+    "Wrist-camera jaw-center calibration and closed-loop convergence must be validated first.",
+    "All motion must retain the independent collision/table-clearance gate.",
+    "Explicit approval is required before any actuator command is implemented."
+  ]
+}

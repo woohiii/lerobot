@@ -1,0 +1,62 @@
+{
+  "env": {
+    "name": "real_robot",
+    "fps": 10,
+    "processor": {
+      "control_mode": "leader",
+      "observation": {
+        "display_cameras": true
+      },
+      "image_preprocessing": {
+        "crop_params_dict": {},
+        "resize_size": [128, 128]
+      },
+      "gripper": {
+        "use_gripper": true,
+        "gripper_penalty": 0.0
+      },
+      "reset": {
+        "reset_time_s": 5.0,
+        "control_time_s": 20.0
+      },
+      "inverse_kinematics": {
+        "urdf_path": "custom_scripts/vision_pick_place/so101_urdf/so_arm101.urdf",
+        "target_frame_name": "gripper_frame_link",
+        "end_effector_bounds": {
+          "max": [0.34, 0.2179, 0.2418],
+          "min": [0.1713, -0.0171, 0.0014]
+        }
+      }
+    },
+    "robot": {
+      "type": "so101_follower",
+      "port": "/dev/so101_follower",
+      "id": "follower",
+      "cameras": {
+        "wrist": {
+          "type": "opencv",
+          "index_or_path": 5,
+          "fps": 30,
+          "width": 640,
+          "height": 480
+        }
+      }
+    },
+    "teleop": {
+      "type": "so101_leader",
+      "port": "/dev/so101_leader",
+      "id": "leader",
+      "use_degrees": true
+    }
+  },
+  "dataset": {
+    "repo_id": "local/hilserl_red_cube_to_bin",
+    "root": null,
+    "task": "put the red cube in the bin",
+    "num_episodes_to_record": 15,
+    "replay_episode": 0,
+    "push_to_hub": false
+  },
+  "mode": "record",
+  "device": "cpu"
+}

@@ -1,0 +1,106 @@
+{
+  "created_utc": "2026-09-02T08:27:00.426148+00:00",
+  "mode": "CONSERVATIVE_HOLD_ENABLE",
+  "before": {
+    "torque_enable": {
+      "shoulder_pan": 0.0,
+      "shoulder_lift": 0.0,
+      "elbow_flex": 0.0,
+      "wrist_flex": 0.0,
+      "wrist_roll": 0.0,
+      "gripper": 0.0
+    },
+    "present_position": {
+      "shoulder_pan": 0.7472527472527473,
+      "shoulder_lift": -103.20879120879121,
+      "elbow_flex": 98.50549450549451,
+      "wrist_flex": 78.76923076923077,
+      "wrist_roll": -85.58241758241758,
+      "gripper": 3.0327214684756583
+    },
+    "temperature_c": {
+      "shoulder_pan": 30.0,
+      "shoulder_lift": 30.0,
+      "elbow_flex": 31.0,
+      "wrist_flex": 32.0,
+      "wrist_roll": 31.0,
+      "gripper": 33.0
+    },
+    "voltage_raw_tenths_v": {
+      "shoulder_pan": 122.0,
+      "shoulder_lift": 122.0,
+      "elbow_flex": 122.0,
+      "wrist_flex": 122.0,
+      "wrist_roll": 121.0,
+      "gripper": 121.0
+    },
+    "current_raw": {
+      "shoulder_pan": 0.0,
+      "shoulder_lift": 0.0,
+      "elbow_flex": 0.0,
+      "wrist_flex": 0.0,
+      "wrist_roll": 0.0,
+      "gripper": 0.0
+    }
+  },
+  "preflight_failures": [],
+  "goal_position_equals_present_position": {
+    "shoulder_pan": 0.7472527472527473,
+    "shoulder_lift": -103.20879120879121,
+    "elbow_flex": 98.50549450549451,
+    "wrist_flex": 78.76923076923077,
+    "wrist_roll": -85.58241758241758,
+    "gripper": 3.0327214684756583
+  },
+  "post_enable_max_delta": {
+    "shoulder_pan": 0.0,
+    "shoulder_lift": 0.0,
+    "elbow_flex": 0.0,
+    "wrist_flex": 0.0,
+    "wrist_roll": 0.0,
+    "gripper": 0.0
+  },
+  "after": {
+    "torque_enable": {
+      "shoulder_pan": 1.0,
+      "shoulder_lift": 1.0,
+      "elbow_flex": 1.0,
+      "wrist_flex": 1.0,
+      "wrist_roll": 1.0,
+      "gripper": 1.0
+    },
+    "present_position": {
+      "shoulder_pan": 0.7472527472527473,
+      "shoulder_lift": -103.20879120879121,
+      "elbow_flex": 98.50549450549451,
+      "wrist_flex": 78.76923076923077,
+      "wrist_roll": -85.58241758241758,
+      "gripper": 3.0327214684756583
+    },
+    "temperature_c": {
+      "shoulder_pan": 30.0,
+      "shoulder_lift": 30.0,
+      "elbow_flex": 31.0,
+      "wrist_flex": 32.0,
+      "wrist_roll": 31.0,
+      "gripper": 33.0
+    },
+    "voltage_raw_tenths_v": {
+      "shoulder_pan": 122.0,
+      "shoulder_lift": 122.0,
+      "elbow_flex": 121.0,
+      "wrist_flex": 122.0,
+      "wrist_roll": 121.0,
+      "gripper": 121.0
+    },
+    "current_raw": {
+      "shoulder_pan": 0.0,
+      "shoulder_lift": 0.0,
+      "elbow_flex": 0.0,
+      "wrist_flex": 0.0,
+      "wrist_roll": 0.0,
+      "gripper": 0.0
+    }
+  },
+  "result": "TORQUE_ENABLED_HOLD_STABLE"
+}

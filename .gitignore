@@ -176,3 +176,9 @@ outputs/
 *.urdf
 *.xml
 *.part
+
+# Model weights & large binaries (custom vision scripts)
+*.pt
+*.zip
+*.log.txt
+mobileclip2_b.ts

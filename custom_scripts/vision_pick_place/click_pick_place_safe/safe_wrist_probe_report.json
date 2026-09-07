@@ -1,0 +1,5 @@
+{
+  "mode": "PREVIEW_ONLY",
+  "result": "EMERGENCY_TORQUE_DISABLED",
+  "error": "refuse: current model z=-0.013m is below hover gate"
+}

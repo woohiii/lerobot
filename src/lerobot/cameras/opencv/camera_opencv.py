@@ -107,6 +107,8 @@ class OpenCVCamera(Camera):
         self.fps = config.fps
         self.color_mode = config.color_mode
         self.warmup_s = config.warmup_s
+        self.preview = config.preview
+        self.preview_name = config.preview_name or f"OpenCV camera {config.index_or_path} (recording)"
 
         self.videocapture: cv2.VideoCapture | None = None
 
@@ -184,6 +186,9 @@ class OpenCVCamera(Camera):
                 with self.frame_lock:
                     if self.latest_frame is None:
                         raise ConnectionError(f"{self} failed to capture frames during warmup.")
+            if self.preview:
+                cv2.namedWindow(self.preview_name, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(self.preview_name, int(self.width), int(self.height))
         except BaseException:
             try:
                 self._cleanup_resources()
@@ -256,8 +261,14 @@ class OpenCVCamera(Camera):
         success = self.videocapture.set(cv2.CAP_PROP_FPS, float(self.fps))
         actual_fps = self.videocapture.get(cv2.CAP_PROP_FPS)
         # Use math.isclose for robust float comparison
-        if not success or not math.isclose(self.fps, actual_fps, rel_tol=1e-3):
+        if not math.isclose(self.fps, actual_fps, rel_tol=1e-3):
             raise RuntimeError(f"{self} failed to set fps={self.fps} ({actual_fps=}).")
+        if not success:
+            logger.debug(
+                "%s backend returned false while setting fps=%s, but the device applied the requested value.",
+                self,
+                self.fps,
+            )
 
     def _validate_fourcc(self) -> None:
         """Validates and sets the camera's FOURCC code."""
@@ -293,15 +304,22 @@ class OpenCVCamera(Camera):
         height_success = self.videocapture.set(cv2.CAP_PROP_FRAME_HEIGHT, float(self.capture_height))
 
         actual_width = int(round(self.videocapture.get(cv2.CAP_PROP_FRAME_WIDTH)))
-        if not width_success or self.capture_width != actual_width:
+        if self.capture_width != actual_width:
             raise RuntimeError(
                 f"{self} failed to set capture_width={self.capture_width} ({actual_width=}, {width_success=})."
             )
 
         actual_height = int(round(self.videocapture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        if not height_success or self.capture_height != actual_height:
+        if self.capture_height != actual_height:
             raise RuntimeError(
                 f"{self} failed to set capture_height={self.capture_height} ({actual_height=}, {height_success=})."
+            )
+        if not width_success or not height_success:
+            logger.debug(
+                "%s backend returned false while setting %sx%s, but the device applied the requested profile.",
+                self,
+                self.capture_width,
+                self.capture_height,
             )
 
     @staticmethod
@@ -371,6 +389,10 @@ class OpenCVCamera(Camera):
         if not ret:
             raise RuntimeError(f"{self} read failed (status={ret}).")
 
+        if self.preview:
+            preview = frame if self.color_mode is ColorMode.BGR else cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            cv2.imshow(self.preview_name, preview)
+            cv2.waitKey(1)
         return frame
 
     @check_if_not_connected
@@ -627,5 +649,7 @@ class OpenCVCamera(Camera):
             raise DeviceNotConnectedError(f"{self} not connected.")
 
         self._cleanup_resources()
+        if self.preview:
+            cv2.destroyWindow(self.preview_name)
 
         logger.info(f"{self} disconnected.")

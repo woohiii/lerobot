@@ -1,0 +1,30 @@
+{
+  "mode": "PREVIEW_ONLY",
+  "before_px": [
+    321.2788174608386,
+    198.99116451798832
+  ],
+  "jaw_center_px": [
+    238.0,
+    360.0
+  ],
+  "error_before_px": [
+    -83.27881746083858,
+    161.00883548201168
+  ],
+  "requested_xy_step_m": [
+    -0.008161114428774872,
+    -0.028563735827719976
+  ],
+  "bounded_xy_step_m": [
+    -0.0008241677764838466,
+    -0.0028845705878355055
+  ],
+  "hover_xyz_m": [
+    0.1417691128781515,
+    0.08842935777299936,
+    0.11275336137990753
+  ],
+  "result": "EMERGENCY_TORQUE_DISABLED",
+  "error": "alignment error worsened by more than 10 px; stopping"
+}

@@ -1,0 +1,84 @@
+{
+  "created_utc": "2026-09-02T08:27:55.459392+00:00",
+  "mode": "EXECUTED_HOVER_ONLY_INCREMENTAL",
+  "plan": {
+    "created_utc": "2026-09-02T08:27:55.468362+00:00",
+    "mode": "HOVER_ONLY_NO_DESCENT_NO_GRIPPER",
+    "source_rgb": "/tmp/vsp_astra_rgb.png",
+    "source_frame_age_s": 0.020322561264038086,
+    "cube_pixel": [
+      364.41750647854883,
+      197.46539975045587
+    ],
+    "hover_xyz_m": [
+      0.1934201381702346,
+      0.11140734831353101,
+      0.13
+    ],
+    "global_xy_notice": "coarse only; wrist visual servo remains required before any descent",
+    "ik_joint_deg_before_safety_gate": [
+      -36.65693812502237,
+      -60.73156509038733,
+      44.511942614300466,
+      61.89804403209493,
+      -85.58241758241758
+    ],
+    "ik_delta_deg_before_safety_gate": {
+      "shoulder_pan": -37.404190872275116,
+      "shoulder_lift": 42.477226118403884,
+      "elbow_flex": -53.993551891194045,
+      "wrist_flex": -16.871186737135844,
+      "wrist_roll": 0.0
+    },
+    "current_joint_deg": {
+      "shoulder_pan": 0.7472527472527473,
+      "shoulder_lift": -103.20879120879121,
+      "elbow_flex": 98.50549450549451,
+      "wrist_flex": 78.76923076923077,
+      "wrist_roll": -85.58241758241758,
+      "gripper": 3.0327214684756583
+    },
+    "target_joint_deg": {
+      "shoulder_pan": -36.65693812502237,
+      "shoulder_lift": -60.73156509038733,
+      "elbow_flex": 44.511942614300466,
+      "wrist_flex": 61.89804403209493,
+      "wrist_roll": -85.58241758241758,
+      "gripper": 3.0327214684756583
+    },
+    "delta_joint_deg": {
+      "shoulder_pan": -37.404190872275116,
+      "shoulder_lift": 42.477226118403884,
+      "elbow_flex": -53.993551891194045,
+      "wrist_flex": -16.871186737135844,
+      "wrist_roll": 0.0
+    },
+    "max_abs_delta_deg": 53.993551891194045,
+    "interpolation_steps": 36
+  },
+  "last_step": {
+    "index": 36,
+    "commanded": {
+      "shoulder_pan": -36.65693812502237,
+      "shoulder_lift": -60.73156509038733,
+      "elbow_flex": 44.511942614300466,
+      "wrist_flex": 61.89804403209493,
+      "wrist_roll": -85.58241758241758
+    },
+    "actual": {
+      "shoulder_pan": -36.61538461538461,
+      "shoulder_lift": -60.92307692307692,
+      "elbow_flex": 46.9010989010989,
+      "wrist_flex": 63.20879120879121,
+      "wrist_roll": -85.58241758241758
+    },
+    "lag_deg": {
+      "shoulder_pan": 0.04155350963775817,
+      "shoulder_lift": 0.19151183268959215,
+      "elbow_flex": 2.389156286798432,
+      "wrist_flex": 1.3107471766962817,
+      "wrist_roll": 0.0
+    }
+  },
+  "result": "HOVER_REACHED_TORQUE_HOLDING"
+}

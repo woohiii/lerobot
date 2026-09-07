@@ -1,0 +1,45 @@
+{
+  "created_utc": "2026-09-02T06:23:44.154307+00:00",
+  "mode": "MANUAL_HELDOUT_READ_ONLY_NO_MOTOR_WRITES",
+  "torque_writes": 0,
+  "records": [
+    {
+      "target": "cube",
+      "pixel": [
+        364,
+        153
+      ],
+      "observed_xyz_m": [
+        0.27788305217852327,
+        0.1181540995783474,
+        -0.0054013854136859
+      ],
+      "candidate_xy_m": [
+        0.2623439478517502,
+        0.11550620829021127
+      ],
+      "xy_error_mm": 15.763092702643252
+    },
+    {
+      "target": "box",
+      "pixel": [
+        546,
+        147
+      ],
+      "observed_xyz_m": [
+        0.2566459222446266,
+        -0.016794360908205817,
+        0.04199934682273597
+      ],
+      "candidate_xy_m": [
+        0.24278814884023078,
+        -0.042035924380312645
+      ],
+      "xy_error_mm": 28.795388697567155
+    }
+  ],
+  "pass_threshold_mm": 8.0,
+  "passed": false,
+  "activation_allowed": false,
+  "next_gate": "explicit review; candidate is never applied automatically"
+}

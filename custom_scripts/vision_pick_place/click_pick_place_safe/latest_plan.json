@@ -1,0 +1,247 @@
+{
+  "created_utc": "2026-09-02T05:49:50.603632+00:00",
+  "mode": "PLAN_ONLY_NO_SERIAL_NO_ACTUATION",
+  "inputs": {
+    "rgb": "/tmp/vsp_astra_rgb.png",
+    "depth": "/tmp/vsp_astra_depth_mm.npy",
+    "edge_midpoints_px": [
+      [
+        346,
+        159
+      ],
+      [
+        382,
+        147
+      ]
+    ],
+    "grasp_center_px": [
+      364,
+      153
+    ],
+    "drop_px": [
+      546,
+      147
+    ],
+    "grasp_edge_spacing_px": 37.94733192202055,
+    "grasp_axis_image_deg": -18.43494882292201,
+    "click_overlay": "/home/youngchan/lerobot/custom_scripts/vision_pick_place/click_pick_place_safe/latest_plan.png"
+  },
+  "depth_validation": {
+    "relative_object_height_m": 0.029,
+    "absolute_3d_used": false
+  },
+  "home": {
+    "joint_deg": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source": "synthetic_zero_seed_not_a_real_home"
+  },
+  "wrist_down": {
+    "candidate_wrist_roll_deg": -90.0,
+    "physically_verified": false
+  },
+  "safety_gate": {
+    "execution_allowed": false,
+    "reasons": [
+      "This program is planning-only and has no actuator implementation.",
+      "Camera-to-base absolute 3-D extrinsics are not validated for Astra S.",
+      "The wrist-down roll value has not been physically verified.",
+      "Real collision/table-clearance validation remains required."
+    ],
+    "max_ik_position_error_mm": 0.9986115111449297,
+    "minimum_model_downward_cosine": 0.48439647222565585,
+    "grasp_descend_model_downward_cosine": 0.7334657307944148,
+    "place_descend_model_downward_cosine": 0.8154486448743683,
+    "grasp_orientation_model_check": false
+  },
+  "stages": [
+    {
+      "name": "pre_grasp",
+      "xyz_m": [
+        0.3353115651125259,
+        0.0862769035860616,
+        0.13
+      ],
+      "gripper": "open",
+      "joint_deg": [
+        -14.795355790641864,
+        -10.407311494801524,
+        23.539079733530738,
+        15.841574407352686,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.8796422875804776,
+      "tool_z_axis_base": [
+        0.8458402001233936,
+        0.22341533866446714,
+        -0.48439647222565585
+      ],
+      "model_downward_cosine": 0.48439647222565585
+    },
+    {
+      "name": "grasp_descend",
+      "xyz_m": [
+        0.3353115651125259,
+        0.0862769035860616,
+        0.0187
+      ],
+      "gripper": "open",
+      "joint_deg": [
+        -14.788219848157132,
+        17.315779990338186,
+        21.140459913432295,
+        8.721895108804718,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.9777616511047831,
+      "tool_z_axis_base": [
+        0.6572092594001183,
+        0.17350507516774252,
+        -0.7334657307944148
+      ],
+      "model_downward_cosine": 0.7334657307944148
+    },
+    {
+      "name": "grasp_close",
+      "xyz_m": [
+        0.3353115651125259,
+        0.0862769035860616,
+        0.0187
+      ],
+      "gripper": "close",
+      "joint_deg": [
+        -14.788219848157132,
+        17.315779990338186,
+        21.140459913432295,
+        8.721895108804718,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.9777616511047831,
+      "tool_z_axis_base": [
+        0.6572092594001183,
+        0.17350507516774252,
+        -0.7334657307944148
+      ],
+      "model_downward_cosine": 0.7334657307944148
+    },
+    {
+      "name": "lift_hold_4cm",
+      "xyz_m": [
+        0.3353115651125259,
+        0.0862769035860616,
+        0.0587
+      ],
+      "gripper": "closed",
+      "joint_deg": [
+        -14.795457966123712,
+        6.083667891371663,
+        23.535749797739598,
+        11.775259606168602,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.9986115111449297,
+      "tool_z_axis_base": [
+        0.7253021130326296,
+        0.19157929166638055,
+        -0.6612368863236621
+      ],
+      "model_downward_cosine": 0.6612368863236621
+    },
+    {
+      "name": "pre_place",
+      "xyz_m": [
+        0.27393923404232134,
+        -0.14294508621000326,
+        0.13
+      ],
+      "gripper": "closed",
+      "joint_deg": [
+        32.90275479941654,
+        -25.09598607028259,
+        33.235318623463314,
+        24.902107694521337,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.8413614226838741,
+      "tool_z_axis_base": [
+        0.7038180010614327,
+        -0.4553593116177528,
+        -0.5452413398715255
+      ],
+      "model_downward_cosine": 0.5452413398715255
+    },
+    {
+      "name": "place_descend",
+      "xyz_m": [
+        0.27393923404232134,
+        -0.14294508621000326,
+        0.0047
+      ],
+      "gripper": "closed",
+      "joint_deg": [
+        32.912066742451294,
+        10.779099428046816,
+        31.563928382132417,
+        12.289001977942522,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.7464071736852432,
+      "tool_z_axis_base": [
+        0.4859339908042123,
+        -0.314502248248958,
+        -0.8154486448743683
+      ],
+      "model_downward_cosine": 0.8154486448743683
+    },
+    {
+      "name": "release",
+      "xyz_m": [
+        0.27393923404232134,
+        -0.14294508621000326,
+        0.0047
+      ],
+      "gripper": "open",
+      "joint_deg": [
+        32.912066742451294,
+        10.779099428046816,
+        31.563928382132417,
+        12.289001977942522,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.7464071736852432,
+      "tool_z_axis_base": [
+        0.4859339908042123,
+        -0.314502248248958,
+        -0.8154486448743683
+      ],
+      "model_downward_cosine": 0.8154486448743683
+    },
+    {
+      "name": "retreat",
+      "xyz_m": [
+        0.27393923404232134,
+        -0.14294508621000326,
+        0.13
+      ],
+      "gripper": "open",
+      "joint_deg": [
+        32.90404776894637,
+        -25.87619863848823,
+        35.167486855295664,
+        22.470717550311306,
+        -90.0
+      ],
+      "ik_position_error_mm": 0.888556653309513,
+      "tool_z_axis_base": [
+        0.7138536901742467,
+        -0.46187518728027915,
+        -0.5263878991764713
+      ],
+      "model_downward_cosine": 0.5263878991764713
+    }
+  ]
+}

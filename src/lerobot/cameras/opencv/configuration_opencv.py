@@ -64,6 +64,8 @@ class OpenCVCameraConfig(CameraConfig):
     warmup_s: int = 1
     fourcc: str | None = None
     backend: Cv2Backends = Cv2Backends.ANY
+    preview: bool = False
+    preview_name: str | None = None
 
     def __post_init__(self) -> None:
         self.color_mode = ColorMode(self.color_mode)

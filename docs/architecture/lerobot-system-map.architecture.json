@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "LeRobot 시스템 아키텍처",
+    "quality_profile": "showcase",
+    "viewBox": [1100, 600]
+  },
+  "components": [
+    { "id": "operator", "type": "external", "label": "로봇 운영자", "sublabel": "CLI / Python API", "pos": [20, 250], "size": [130, 72] },
+    { "id": "cli", "type": "frontend", "label": "LeRobot CLI", "sublabel": "train · eval · record", "pos": [180, 250], "size": [140, 72] },
+    { "id": "configs", "type": "backend", "label": "구성 계층", "sublabel": "draccus configs", "pos": [375, 50], "size": [155, 72] },
+    { "id": "datasets", "type": "database", "label": "LeRobot Dataset", "sublabel": "episodes · frames · video", "pos": [375, 250], "size": [155, 72] },
+    { "id": "processor", "type": "backend", "label": "Processor Pipeline", "sublabel": "data / policy transforms", "pos": [590, 140], "size": [155, 72] },
+    { "id": "policies", "type": "backend", "label": "정책 계층", "sublabel": "PreTrainedPolicy · factory", "pos": [800, 140], "size": [155, 72] },
+    { "id": "runtime", "type": "backend", "label": "학습 · 평가 런타임", "sublabel": "PyTorch · accelerate", "pos": [800, 330], "size": [155, 72] },
+    { "id": "envs", "type": "backend", "label": "환경 계층", "sublabel": "Gymnasium environments", "pos": [590, 430], "size": [155, 72] },
+    { "id": "hardware", "type": "external", "label": "실물 로봇", "sublabel": "robots · cameras · control", "pos": [375, 430], "size": [155, 72] },
+    { "id": "hub", "type": "cloud", "label": "Hugging Face Hub", "sublabel": "data · models", "pos": [980, 140], "size": [100, 72] }
+  ],
+  "connections": [
+    { "id": "operator-cli", "from": "operator", "to": "cli", "label": "명령 실행", "variant": "emphasis", "labelAt": [165, 336] },
+    { "id": "configs-cli", "from": "configs", "to": "cli", "label": "파싱", "fromSide": "left", "toSide": "top" },
+    { "id": "cli-dataset", "from": "cli", "to": "datasets", "label": "record / load", "labelAt": [348, 336] },
+    { "id": "dataset-processor", "from": "datasets", "to": "processor", "label": "samples", "variant": "emphasis" },
+    { "id": "processor-policy", "from": "processor", "to": "policies", "label": "tensors", "variant": "emphasis" },
+    { "id": "policy-runtime", "from": "policies", "to": "runtime", "label": "forward / loss", "fromSide": "bottom", "toSide": "top", "labelAt": [878, 226] },
+    { "id": "runtime-env", "from": "runtime", "to": "envs", "label": "evaluate", "fromSide": "left", "toSide": "right" },
+    { "id": "env-hardware", "from": "envs", "to": "hardware", "label": "control I/O", "labelAt": [560, 516] },
+    { "id": "policy-hub", "from": "policies", "to": "hub", "label": "model", "variant": "dashed", "labelAt": [963, 226] }
+  ]
+}

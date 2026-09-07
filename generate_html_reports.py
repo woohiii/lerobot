@@ -1,0 +1,133 @@
+import os
+
+def create_index_html():
+    content = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>orca Claude Code 4 Terminal Task Summaries</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-orange: #fb923c;
+            --accent-purple: #c084fc;
+            --accent-teal: #2dd4bf;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 3rem; border-bottom: 2px solid var(--card-border); padding-bottom: 2rem; }
+        h1 { font-size: 2.5rem; color: #fff; margin-bottom: 0.5rem; }
+        p.subtitle { color: var(--text-muted); font-size: 1.1rem; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1.5rem; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card:hover { transform: translateY(-4px); border-color: var(--accent-blue); }
+        .card-header { margin-bottom: 1rem; }
+        .card-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-bottom: 0.75rem;
+        }
+        .tag-t1 { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .tag-t2 { background: rgba(251, 146, 60, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+        .tag-t3 { background: rgba(192, 132, 252, 0.2); color: var(--accent-purple); border: 1px solid var(--accent-purple); }
+        .tag-t4 { background: rgba(45, 212, 191, 0.2); color: var(--accent-teal); border: 1px solid var(--accent-teal); }
+        
+        .card-title { font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem; }
+        .card-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5; }
+        .btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: #2563eb;
+            color: #fff;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 orca 4개 터미널 세션 작업 보고서 인덱스</h1>
+            <p class="subtitle">Claude Code 세션별 진행 내용, 실행 코드, 검증 결과 개별 보고서</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-tag tag-t1">Terminal 1</span>
+                    <h2 class="card-title">SO-101 Teleop & Soft Gripper IK</h2>
+                    <p class="card-desc">리더-팔로워 손목 90도 각도 보정, 소프트 그리퍼 파지 수동 보정 및 Joint Lag 충돌 안전 복귀 구현</p>
+                </div>
+                <a href="file:///home/youngchan/lerobot/orca_terminal_1_teleop_softgripper.html" onclick="location.href='file:///home/youngchan/lerobot/orca_terminal_1_teleop_softgripper.html'" class="btn">1번 보고서 보기 &rarr;</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-tag tag-t2">Terminal 2</span>
+                    <h2 class="card-title">Qwen2-VL 3D Spatial Perception</h2>
+                    <p class="card-desc">Qwen2-VL 2D 감지 → Astra S Depth 3D 좌표 변환 연동 및 5단계 자율 Pick-and-Place 구현</p>
+                </div>
+                <a href="file:///home/youngchan/lerobot/orca_terminal_2_qwen_3d_pick_place.html" onclick="location.href='file:///home/youngchan/lerobot/orca_terminal_2_qwen_3d_pick_place.html'" class="btn">2번 보고서 보기 &rarr;</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-tag tag-t3">Terminal 3</span>
+                    <h2 class="card-title">Gemini VLM & Dual-Cam Baseline</h2>
+                    <p class="card-desc">Gemini VLM + YOLO 듀얼 카메라 실시간 스트리밍, 대화형 클릭 UI, Z축 (+5cm) 오프셋 미세조정</p>
+                </div>
+                <a href="file:///home/youngchan/lerobot/orca_terminal_3_gemini_dualcam_pick_place.html" onclick="location.href='file:///home/youngchan/lerobot/orca_terminal_3_gemini_dualcam_pick_place.html'" class="btn">3번 보고서 보기 &rarr;</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-tag tag-t4">Terminal 4</span>
+                    <h2 class="card-title">Gemini Panel Guard & 5-Step Korean</h2>
+                    <p class="card-desc">우측 패널(뎁스/손목) 클릭 오작동 차단 가드 구현, 5단계 정밀 제어 루프 및 한국어 가이드 전환</p>
+                </div>
+                <a href="file:///home/youngchan/lerobot/orca_terminal_4_gemini_dualcam_korean_5step.html" onclick="location.href='file:///home/youngchan/lerobot/orca_terminal_4_gemini_dualcam_korean_5step.html'" class="btn">4번 보고서 보기 &rarr;</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
+    with open('/home/youngchan/lerobot/orca_terminals_index.html', 'w', encoding='utf-8') as f:
+        f.write(content)
+
+if __name__ == '__main__':
+    create_index_html()
+    print("Updated Index HTML with full file:/// URIs and JS onclick fallback.")

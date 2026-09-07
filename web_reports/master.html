@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>orca Claude Code 4 Terminal Reports (Master Integrated)</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-orange: #fb923c;
+            --accent-purple: #c084fc;
+            --accent-teal: #2dd4bf;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --code-bg: #090d16;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 1.5rem;
+        }
+        .container { max-width: 1250px; margin: 0 auto; }
+        
+        /* Navigation Bar */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: #1e293b;
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .tab-btn.active {
+            color: #fff;
+            background: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);
+        }
+        .tab-btn.active.t1 { background: #0284c7; }
+        .tab-btn.active.t2 { background: #ea580c; }
+        .tab-btn.active.t3 { background: #9333ea; }
+        .tab-btn.active.t4 { background: #0d9488; }
+        .tab-btn.active.t5 { background: #4f46e5; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Layout & Cards */
+        header {
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .badge-blue { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .badge-orange { background: rgba(251, 146, 60, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+        .badge-purple { background: rgba(192, 132, 252, 0.2); color: var(--accent-purple); border: 1px solid var(--accent-purple); }
+        .badge-teal { background: rgba(45, 212, 191, 0.2); color: var(--accent-teal); border: 1px solid var(--accent-teal); }
+        .badge-green { background: rgba(74, 222, 128, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-yellow { background: rgba(250, 204, 21, 0.2); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+
+        h1 { font-size: 2.2rem; margin: 0.75rem 0 0.5rem 0; color: #fff; }
+        .meta-info { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+        }
+        .card h2 { font-size: 1.3rem; margin-bottom: 1rem; color: var(--accent-blue); display: flex; align-items: center; gap: 0.5rem; }
+        .card.t2-card h2 { color: var(--accent-orange); }
+        .card.t3-card h2 { color: var(--accent-purple); }
+        .card.t4-card h2 { color: var(--accent-teal); }
+
+        .timeline { position: relative; padding-left: 1.5rem; border-left: 2px solid var(--card-border); margin: 1rem 0; }
+        .timeline-item { position: relative; margin-bottom: 1.5rem; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.95rem;
+            top: 0.35rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+        }
+        .t2-item::before { background: var(--accent-orange); }
+        .t3-item::before { background: var(--accent-purple); }
+        .t4-item::before { background: var(--accent-teal); }
+
+        .timeline-title { font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+        .timeline-desc { color: var(--text-muted); font-size: 0.95rem; }
+        
+        pre, code { font-family: 'Fira Code', 'Courier New', Courier, monospace; }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--card-border);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #38bdf8;
+            font-size: 0.88rem;
+            margin: 0.75rem 0;
+            line-height: 1.45;
+        }
+        pre.t2-code { color: #fb923c; }
+        pre.t3-code { color: #c084fc; }
+        pre.t4-code { color: #2dd4bf; }
+
+        .cmd-box {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            padding: 0.75rem 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        .cmd-box.t2-cmd { background: rgba(251, 146, 60, 0.1); border-left-color: var(--accent-orange); }
+        .cmd-box.t3-cmd { background: rgba(168, 85, 247, 0.1); border-left-color: var(--accent-purple); }
+        .cmd-box.t4-cmd { background: rgba(45, 212, 191, 0.1); border-left-color: var(--accent-teal); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid var(--card-border); padding: 0.75rem; text-align: left; font-size: 0.9rem; }
+        th { background: #0f172a; color: var(--accent-blue); }
+        tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+    </style>
+</head>
+<body>
+    <div class="container"><div style="margin-bottom: 1rem;"><a href="./index.html" style="color:#38bdf8; text-decoration:none; font-weight:bold;">&larr; 웹 포털 메인으로 돌아가기</a></div></div>
+    <div class="container">
+        <!-- Top Navigation Bar -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active t5" onclick="switchTab('tab-index', this)">📌 5. 통합 인덱스</button>
+            <button class="tab-btn t1" onclick="switchTab('tab-t1', this)">🖥️ 1. SO-101 Teleop & Soft Gripper</button>
+            <button class="tab-btn t2" onclick="switchTab('tab-t2', this)">👁️ 2. Qwen2-VL 3D Spatial Perception</button>
+            <button class="tab-btn t3" onclick="switchTab('tab-t3', this)">🤖 3. Gemini VLM & Dual-Cam</button>
+            <button class="tab-btn t4" onclick="switchTab('tab-t4', this)">🛡️ 4. Gemini Panel Guard & 5-Step</button>
+        </nav>
+
+        <!-- TAB 5: INTEGRATED INDEX -->
+        <div id="tab-index" class="tab-content active">
+            <header>
+                <h1>🤖 orca 4개 터미널 세션 작업 보고서 인덱스</h1>
+                <p class="subtitle">상단 탭을 클릭하여 각 터미널 세션의 세부 진행 내용, 실행 코드, 검증 결과 보고서를 확인하세요.</p>
+            </header>
+
+            <div class="grid">
+                <div class="card">
+                    <div>
+                        <span class="badge badge-blue">Terminal 1</span>
+                        <h2>1. SO-101 Teleop & Soft Gripper</h2>
+                        <p class="card-desc">리더-팔로워 손목 90도 각도 보정, 소프트 그리퍼 파지 수동 보정 및 Joint Lag 충돌 안전 복귀 구현</p>
+                    </div>
+                    <button class="tab-btn t1" style="width:100%; justify-content:center; margin-top:1rem;" onclick="switchTab('tab-t1', document.querySelectorAll('.tab-btn')[1])">1번 보고서 보기 &rarr;</button>
+                </div>
+
+                <div class="card t2-card">
+                    <div>
+                        <span class="badge badge-orange">Terminal 2</span>
+                        <h2>2. Qwen2-VL 3D Perception</h2>
+                        <p class="card-desc">Qwen2-VL 2D 감지 → Astra S Depth 3D 좌표 변환 연동 및 5단계 자율 Pick-and-Place 구현</p>
+                    </div>
+                    <button class="tab-btn t2" style="width:100%; justify-content:center; margin-top:1rem;" onclick="switchTab('tab-t2', document.querySelectorAll('.tab-btn')[2])">2번 보고서 보기 &rarr;</button>
+                </div>
+
+                <div class="card t3-card">
+                    <div>
+                        <span class="badge badge-purple">Terminal 3</span>
+                        <h2>3. Gemini VLM & Dual-Cam</h2>
+                        <p class="card-desc">Gemini VLM + YOLO 듀얼 카메라 실시간 스트리밍, 대화형 클릭 UI, Z축 (+5cm) 오프셋 미세조정</p>
+                    </div>
+                    <button class="tab-btn t3" style="width:100%; justify-content:center; margin-top:1rem;" onclick="switchTab('tab-t3', document.querySelectorAll('.tab-btn')[3])">3번 보고서 보기 &rarr;</button>
+                </div>
+
+                <div class="card t4-card">
+                    <div>
+                        <span class="badge badge-teal">Terminal 4</span>
+                        <h2>4. Gemini Panel Guard & 5-Step</h2>
+                        <p class="card-desc">우측 패널(뎁스/손목) 클릭 오작동 차단 가드 구현, 5단계 정밀 제어 루프 및 한국어 가이드 전환</p>
+                    </div>
+                    <button class="tab-btn t4" style="width:100%; justify-content:center; margin-top:1rem;" onclick="switchTab('tab-t4', document.querySelectorAll('.tab-btn')[4])">4번 보고서 보기 &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: TERMINAL 1 -->
+        <div id="tab-t1" class="tab-content">
+            <header>
+                <div>
+                    <span class="badge badge-blue">orca Terminal 1</span>
+                    <span class="badge badge-green">Hardware Teleop & IK Baseline</span>
+                    <span class="badge badge-purple">Session: 0efb539b-b3c8-4a3d-a885-5fef8f9e2e3c</span>
+                </div>
+                <h1>SO-101 Teleoperation Calibration & Soft Gripper IK Pick-and-Place</h1>
+                <div class="meta-info">🕒 진행 시간: 2026-09-01 13:53 ~ 16:54 | 💻 환경: Ubuntu Linux / SO-101 Arm / New Soft Gripper</div>
+            </header>
+
+            <div class="grid">
+                <div class="card" style="margin-bottom:0;">
+                    <h2>🎯 주요 진행 목표</h2>
+                    <ul>
+                        <li><strong>AI 검증 페르소나 적용:</strong> 요청된 작업 완료 시 객관적 검증 절차를 명시하는 규칙 체계화</li>
+                        <li><strong>SO-101 리더-팔로워 텔레오퍼레이션 보정:</strong> 손목 관절(Wrist)의 90도 각도 오차 해결</li>
+                        <li><strong>New Soft Gripper IK 적용:</strong> 소프트 그리퍼 장착 후 IK 기반 빨간색 큐브 Pick & Place 베이스라인 구축</li>
+                        <li><strong>안전장치 및 카메라 환경 개선:</strong> Joint Lag 감지 시 자동 복귀 및 손목 카메라 자동 밝기 보정</li>
+                    </ul>
+                </div>
+                <div class="card" style="margin-bottom:0;">
+                    <h2>🛠️ 주요 변경 및 생성 파일</h2>
+                    <ul>
+                        <li><code>custom_scripts/vision_pick_place/manual_grasp_calibration.py</code></li>
+                        <li><code>custom_scripts/vision_pick_place/probe_table_height_manual.py</code></li>
+                        <li><code>custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/click_pick_place.py</code></li>
+                        <li><code>custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/task_state_machine.py</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📜 세부 진행 타임라인 및 주요 프롬프트</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-title">1. 페르소나 및 작업 검증 프로토콜 설정</div>
+                        <div class="timeline-desc"><strong>사용자 프롬프트:</strong> <em>"지금 부터 진행하는 것들은 이거대로 진행해줘. 1.페르소나 부여 2. 작업을 시키면 그 작업을 검증할 수 있는 방법을 줘"</em><br>AI 응답 후 <code>MEMORY.md</code> 및 <code>workflow-persona-and-verification.md</code> 생성. 모든 작업에 검증 실행 명령 명시 의무화.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-title">2. SO-101 텔레오퍼레이션 손목 90도 각도 편차 수정</div>
+                        <div class="timeline-desc"><strong>사용자 프롬프트:</strong> <em>"지금 다 잘되는데 리더암의 손목이랑 팔로워 암의 손목에 90도 차이가 나"</em><br>리더암 모터 관절 오프셋 매핑 문제 분석 후 손목 모터 <code>wrist_roll</code> / <code>wrist_pitch</code> 90도 오프셋 보정 코드 수정.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-title">3. New Soft Gripper IK Pick & Place 구축</div>
+                        <div class="timeline-desc"><strong>사용자 프롬프트:</strong> <em>"IK 방식으로 빨간색 큐브를 집어서 검은색 간이 쓰레기통에 넣는 작업을 하자... 새롭게 NEW GRIPPER 란 이름을 붙여서 진행해보자"</em><br><code>task_red_cube_to_bin_new_gripper</code> 디렉토리 생성 및 소프트 그리퍼 맞춤 파지 깊이/토크 파라미터 적용.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>💻 Terminal 1 실행 명령 및 작성 코드</h2>
+                <div class="cmd-box">
+                    <pre><code># 1. SO-101 리더-팔로워 텔레오퍼레이션 보정 및 관절 수치 검증
+uv run python3 custom_scripts/mujoco_so101_leader_teleop.py
+
+# 2. 소프트 그리퍼 파지 수동 토크/스탈 한계 보정
+uv run python3 custom_scripts/vision_pick_place/manual_grasp_calibration.py
+
+# 3. 클릭 기반 Pick & Place 메인 코드 실행
+uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/click_pick_place.py</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: TERMINAL 2 -->
+        <div id="tab-t2" class="tab-content">
+            <header>
+                <div>
+                    <span class="badge badge-orange">orca Terminal 2</span>
+                    <span class="badge badge-green">Qwen2-VL & 3D Spatial Perception</span>
+                    <span class="badge badge-purple">Session: 6e2c1561-11dc-467f-8f79-70588d703306</span>
+                </div>
+                <h1>Qwen2-VL Open-Vocabulary 3D Spatial Perception & Closed-Loop Pick-and-Place</h1>
+                <div class="meta-info">🕒 진행 시간: 2026-09-01 15:29 ~ 17:33 | 💻 환경: Qwen2-VL / Astra S Depth Camera / OpenNI2 / SO-101</div>
+            </header>
+
+            <div class="grid">
+                <div class="card t2-card" style="margin-bottom:0;">
+                    <h2>🎯 주요 진행 목표</h2>
+                    <ul>
+                        <li><strong>VLM Open-Vocabulary 물체 탐지:</strong> Qwen2-VL 기반 테이블 위 임의 물체 2D 영역 바운딩 박스 추출</li>
+                        <li><strong>2D Pixel to 3D World Transformation:</strong> Astra S 뎁스 카메라 파라미터 기반 3D (X, Y, Z) 좌표 변환 파이프라인 수립</li>
+                        <li><strong>하드웨어 안전 모듈 구축:</strong> 모터 과부하 및 고장 방지를 위한 관절 한계 및 홈 위치 검증 로직 추가</li>
+                    </ul>
+                </div>
+                <div class="card t2-card" style="margin-bottom:0;">
+                    <h2>🛠️ 주요 변경 및 생성 파일</h2>
+                    <ul>
+                        <li><code>task_red_cube_to_bin_new_gripper/perception_qwen.py</code></li>
+                        <li><code>task_red_cube_to_bin_new_gripper/qwen_click_pick_place.py</code></li>
+                        <li><code>task_red_cube_to_bin_new_gripper/capture_astra_intrinsics.py</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card t2-card">
+                <h2>💻 Terminal 2 실행 명령 및 작성 코드</h2>
+                <div class="cmd-box t2-cmd">
+                    <pre class="t2-code"><code># 1. Astra S 카메라 내부 파라미터(Intrinsics) 및 뎁스 연동 검증
+uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/capture_astra_intrinsics.py
+
+# 2. 5단계 Qwen 3D Spatial Perception Pick & Place 최종 실행
+uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/qwen_click_pick_place.py</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: TERMINAL 3 -->
+        <div id="tab-t3" class="tab-content">
+            <header>
+                <div>
+                    <span class="badge badge-purple">orca Terminal 3</span>
+                    <span class="badge badge-pink">Gemini VLM + YOLO & Dual Cam</span>
+                    <span class="badge badge-green">Session: 556c9aed</span>
+                </div>
+                <h1>Gemini VLM & YOLO Multi-Modal Live Dual-Camera Interactive Pick-and-Place</h1>
+                <div class="meta-info">🕒 진행 시간: 2026-09-01 15:39 ~ 17:26 | 💻 환경: Gemini VLM / YOLO / Astra S + Wrist Dual Cam / SO-101</div>
+            </header>
+
+            <div class="grid">
+                <div class="card t3-card" style="margin-bottom:0;">
+                    <h2>🎯 주요 진행 목표</h2>
+                    <ul>
+                        <li><strong>VLM 모델 평가 및 Gemini 채택:</strong> NVIDIA API 검토 후 Gemini VLM 기반 자율 라벨링 및 YOLO 검증 결합</li>
+                        <li><strong>듀얼 카메라 실시간 스트림 구축:</strong> Astra S 뎁스 카메라 + 손목 카메라 화면 동시 출력 모듈화</li>
+                    </ul>
+                </div>
+                <div class="card t3-card" style="margin-bottom:0;">
+                    <h2>🛠️ 주요 변경 및 생성 파일</h2>
+                    <ul>
+                        <li><code>task_red_cube_to_bin_new_gripper/click_pick_place_zeroshot.py</code></li>
+                        <li><code>task_red_cube_to_bin_new_gripper/perception_zeroshot.py</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card t3-card">
+                <h2>💻 Terminal 3 실행 명령 및 작성 코드</h2>
+                <div class="cmd-box t3-cmd">
+                    <pre class="t3-code"><code># Gemini VLM + YOLO 듀얼 카메라 대화형 클릭 Pick & Place 최종 메인 실행
+uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/click_pick_place_zeroshot.py</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: TERMINAL 4 -->
+        <div id="tab-t4" class="tab-content">
+            <header>
+                <div>
+                    <span class="badge badge-teal">orca Terminal 4</span>
+                    <span class="badge badge-green">Gemini Panel Guard & 5-Step Workflow</span>
+                    <span class="badge badge-yellow">Session: 2aba5020-787e-4d37-a71e-c96f3de7fbfb</span>
+                </div>
+                <h1>Gemini Dual-Cam Panel Guard & 5-Step Korean Workflow Implementation</h1>
+                <div class="meta-info">🕒 진행 시간: 2026-09-01 17:26 ~ 17:34 | 💻 환경: Gemini VLM / Astra S Depth + Wrist Panel / SO-101</div>
+            </header>
+
+            <div class="grid">
+                <div class="card t4-card" style="margin-bottom:0;">
+                    <h2>🎯 주요 진행 목표</h2>
+                    <ul>
+                        <li><strong>측면 패널 오클릭 방지 (Side-Panel Guard):</strong> Astra S RGB 이외에 우측에 덧붙여진 Depth/Wrist 카메라 패널 클릭 시 잘못된 좌표로 로봇팔이 이동하는 버그 방지</li>
+                        <li><strong>5단계 세부 파이프라인 정밀 연동:</strong> 1. 홈 출발 → 2. Gemini 감지 클릭 파지 → 3. 목적지 클릭 배치 → 4. 안전 확인 → 5. 홈 복귀</li>
+                        <li><strong>한국어 설명 응답 모드 적용:</strong> 영어 설명에서 한국어 가이드 및 로그 출력으로 전면 전환</li>
+                    </ul>
+                </div>
+                <div class="card t4-card" style="margin-bottom:0;">
+                    <h2>🛠️ 주요 변경 및 생성 파일</h2>
+                    <ul>
+                        <li><code>task_red_cube_to_bin_new_gripper/click_pick_place_zeroshot.py</code> (패널 클릭 필터링 모듈 추가)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card t4-card">
+                <h2>💻 Terminal 4 실행 명령 및 작성 코드</h2>
+                <div class="cmd-box t4-cmd">
+                    <pre class="t4-code"><code># 패널 오클릭 경계 검사 및 한국어 5단계 워크플로우 적용 실행
+uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/click_pick_place_zeroshot.py</code></pre>
+                </div>
+
+                <h3>패널 오클릭 가드 코드 (click_pick_place_zeroshot.py)</h3>
+                <pre class="t4-code"><code>class ClickWindow:
+    def __init__(self, worker: LabelWorker):
+        self.worker = worker
+        self._clicks = queue.Queue()
+        self._astra_width = None
+
+    def _on_click(self, event, x, y, flags, userdata):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # Astra RGB 너비를 초과한 우측 패널(뎁스/손목) 클릭 시 이벤트 무시
+            if self._astra_width is not None and x >= self._astra_width:
+                print("[click_pick_place_zeroshot] 카메라 패널(뎁스/손목) 클릭 무시 - Astra 화면 안쪽을 클릭하세요.")
+                return
+            self._clicks.put((x, y))</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId, btnElement) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Deactivate all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab content and set active button
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            if (btnElement) {
+                btnElement.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
