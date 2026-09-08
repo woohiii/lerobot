@@ -1,0 +1,4 @@
+[submodule "ros2_ws/src/ros_astra_camera"]
+	path = ros2_ws/src/ros_astra_camera
+	url = https://github.com/orbbec/ros_astra_camera
+	branch = ros2-development
