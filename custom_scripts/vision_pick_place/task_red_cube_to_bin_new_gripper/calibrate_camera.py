@@ -29,10 +29,12 @@ fits a homography (pixel -> robot-frame x,y) and overwrites homography.json.
 'q'/ESC on any point's click prompt skips that point (not the whole run).
 
 Run: uv run python3 custom_scripts/vision_pick_place/task_red_cube_to_bin_new_gripper/calibrate_camera.py
+Manual gripper-tip clicks (no red cube required): add --manual.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import time
 
@@ -60,6 +62,7 @@ CALIB_POINTS_XY = [
 CALIB_HOVER_Z = config.TABLE_Z + 0.05
 
 WINDOW = "calibration - place the red cube under the gripper tip, click when ready ('q'=skip point)"
+MANUAL_WINDOW = "calibration - click the gripper tip ('q'=skip point)"
 
 
 def wait_for_ready_click(cap: perception.PublishedFrameSource, point_label: str) -> bool:
@@ -103,7 +106,43 @@ def capture_cube_pixel(cap: perception.PublishedFrameSource, tries: int = 20) ->
     return None
 
 
+def capture_gripper_tip_pixel(
+    cap: perception.PublishedFrameSource, point_label: str
+) -> tuple[float, float] | None:
+    """Show the live preview and return the manually clicked gripper-tip pixel."""
+    click_queue: list[tuple[int, int]] = []
+
+    def on_mouse(event, x, y, flags, userdata):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            click_queue.append((x, y))
+
+    cv2.namedWindow(MANUAL_WINDOW)
+    cv2.setMouseCallback(MANUAL_WINDOW, on_mouse)
+    try:
+        while True:
+            ok, frame = cap.read()
+            if ok:
+                display = frame.copy()
+                cv2.putText(display, point_label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                cv2.putText(display, "click the gripper tip ('q'=skip)", (10, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 2)
+                cv2.imshow(MANUAL_WINDOW, display)
+            key = cv2.waitKey(30) & 0xFF
+            if key in (ord("q"), 27):
+                return None
+            if click_queue:
+                return click_queue.pop(0)
+    finally:
+        cv2.destroyWindow(MANUAL_WINDOW)
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--manual", action="store_true", help="red cube 대신 각 위치의 그리퍼 팁을 클릭해 픽셀 좌표를 기록"
+    )
+    args = parser.parse_args()
+
     cap = perception.PublishedFrameSource(config.ASTRA_RGB_FRAME_PATH)
     if not cap.isOpened():
         print(
@@ -130,12 +169,18 @@ def main() -> None:
                 print("   [건너뜀] 목표에 충분히 도달하지 못했습니다 (도달 범위 밖일 수 있음).")
                 continue
 
-            ready = wait_for_ready_click(cap, f"[{i + 1}/{len(CALIB_POINTS_XY)}] target xy=({x:.2f},{y:.2f})")
-            if not ready:
-                print("   [건너뜀] 사용자가 건너뛰었습니다.")
-                continue
-
-            pixel = capture_cube_pixel(cap)
+            point_label = f"[{i + 1}/{len(CALIB_POINTS_XY)}] target xy=({x:.2f},{y:.2f})"
+            if args.manual:
+                pixel = capture_gripper_tip_pixel(cap, point_label)
+                if pixel is None:
+                    print("   [건너뜀] 사용자가 건너뛰었습니다.")
+                    continue
+            else:
+                ready = wait_for_ready_click(cap, point_label)
+                if not ready:
+                    print("   [건너뜀] 사용자가 건너뛰었습니다.")
+                    continue
+                pixel = capture_cube_pixel(cap)
             if pixel is None:
                 print("   [실패] 큐브를 카메라에서 못 찾았습니다. 이 점은 건너뜁니다.")
                 continue

@@ -85,6 +85,7 @@ dependencies = [
     "setuptools>=71.0.0,<82.0.0",  # torch 2.11 requires setuptools<82; a higher cap makes the resolver downgrade torch
     "ultralytics>=8.4.123",
     "google-genai>=2.20.0",
+    "eli5>=0.16.0",
 ]
 
 # Optional dependencies

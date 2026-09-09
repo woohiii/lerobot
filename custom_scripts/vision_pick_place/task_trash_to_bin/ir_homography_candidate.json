@@ -1,0 +1,120 @@
+{
+  "created_utc": "2026-09-08T02:00:59.479193+00:00",
+  "mode": "CANDIDATE_ONLY_MANUAL_TORQUE_OFF_CALIBRATION_IR",
+  "camera_source": "/tmp/vsp_astra_ir.png",
+  "homography": [
+    [
+      -0.00042682675079623453,
+      -0.00026579171297013094,
+      0.3133170718960066
+    ],
+    [
+      -0.0007383880672535564,
+      1.896681137600461e-05,
+      0.3455116632295309
+    ],
+    [
+      -0.001760741809589785,
+      0.0002609901920338479,
+      1.0
+    ]
+  ],
+  "table_z_median_m": -0.04382198674761797,
+  "pixel_points": [
+    [
+      320.0,
+      240.0
+    ],
+    [
+      320.0,
+      144.0
+    ],
+    [
+      320.0,
+      336.0
+    ],
+    [
+      192.0,
+      240.0
+    ],
+    [
+      448.0,
+      240.0
+    ],
+    [
+      192.0,
+      144.0
+    ],
+    [
+      448.0,
+      144.0
+    ],
+    [
+      192.0,
+      336.0
+    ],
+    [
+      448.0,
+      336.0
+    ]
+  ],
+  "robot_points": [
+    [
+      0.23488068580627441,
+      0.19416572153568268
+    ],
+    [
+      0.33912521600723267,
+      0.21995165944099426
+    ],
+    [
+      0.12695424258708954,
+      0.18233434855937958
+    ],
+    [
+      0.23130564391613007,
+      0.28729262948036194
+    ],
+    [
+      0.21306520700454712,
+      0.06887529045343399
+    ],
+    [
+      0.2760060727596283,
+      0.29533350467681885
+    ],
+    [
+      0.3369050621986389,
+      0.0707683116197586
+    ],
+    [
+      0.16523921489715576,
+      0.2860761284828186
+    ],
+    [
+      0.10964441299438477,
+      0.07139789313077927
+    ]
+  ],
+  "inliers": [
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    false,
+    true
+  ],
+  "fit_error_mm": {
+    "mean": 18.676294326782227,
+    "max": 55.15130615234375
+  },
+  "activation_allowed": false,
+  "required_before_activation": [
+    "Review point coverage around where the trash/bin actually sit in IR.",
+    "Perform held-out validation with at least two new hand-guided points.",
+    "Explicitly approve promoting this to ir_homography.json (the file ir_wrist_hybrid_trash_to_bin.py --ir-homography should point at)."
+  ]
+}

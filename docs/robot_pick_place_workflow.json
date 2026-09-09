@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "카메라 기반 로봇 물체 옮기기",
+    "quality_profile": "showcase",
+    "viewBox": [1180, 720]
+  },
+  "stages": [
+    { "label": "보고" },
+    { "label": "판단" },
+    { "label": "접근" },
+    { "label": "파지" },
+    { "label": "배치와 복귀" }
+  ],
+  "nodes": [
+    { "id": "camera", "type": "external", "label": "ASTRA S 카메라", "tag": "이케아 트롤리 위", "stage": 0, "row": 0, "width": 150 },
+    { "id": "detect", "type": "frontend", "label": "물체 찾기", "stage": 0, "row": 1, "width": 150 },
+    { "id": "plan", "type": "backend", "label": "잡는 방법 결정", "tag": "LLM 판단", "stage": 1, "row": 1, "width": 158 },
+    { "id": "move", "type": "cloud", "label": "물체로 이동", "stage": 2, "row": 1, "width": 150 },
+    { "id": "grasp", "type": "cloud", "label": "물체 집기", "stage": 3, "row": 1, "width": 150 },
+    { "id": "place", "type": "cloud", "label": "목표 위치에 놓기", "stage": 4, "row": 0, "width": 158 },
+    { "id": "home", "type": "backend", "label": "홈 자세로 복귀", "tag": "완료", "stage": 4, "row": 1, "width": 158 }
+  ],
+  "flows": [
+    { "from": "camera", "to": "detect", "label": "색과 거리 보기", "variant": "default", "route": "vertical-channel" },
+    { "from": "detect", "to": "plan", "label": "물체 위치 전달", "variant": "emphasis", "route": "straight", "labelDy": 53 },
+    { "from": "plan", "to": "move", "label": "잡기 목표 전송", "variant": "emphasis", "route": "straight", "labelDy": 53 },
+    { "from": "move", "to": "grasp", "label": "위치 도착", "variant": "default", "route": "straight" },
+    { "from": "grasp", "to": "place", "label": "잡은 물체 운반", "variant": "emphasis", "route": "vertical-channel", "labelDy": 16 },
+    { "from": "place", "to": "home", "label": "배치 완료", "variant": "emphasis", "route": "vertical-channel", "labelDy": 20, "labelDx": 95 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "한 줄 요약", "items": ["카메라가 보고, AI가 결정하고, 로봇팔이 집어 옮긴 뒤 제자리로 돌아옵니다."] }
+  ]
+}

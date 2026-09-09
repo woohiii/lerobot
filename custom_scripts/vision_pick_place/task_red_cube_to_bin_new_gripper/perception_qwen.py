@@ -34,15 +34,24 @@ ever swapped for a different one.
 from __future__ import annotations
 
 import json
+import os
 import re
 
 import numpy as np
 import torch
 
-import config
-from perception import Detection
+from . import config
+from .perception import Detection
 
-MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
+DEFAULT_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
+
+
+def model_id_from_env() -> str:
+    """Return the configured model, allowing a smaller local GPU fallback."""
+    return os.environ.get("LEROBOT_QWEN_MODEL_ID", DEFAULT_MODEL_ID).strip() or DEFAULT_MODEL_ID
+
+
+MODEL_ID = model_id_from_env()
 BOX_THRESHOLD = 0.3  # same permissive default as perception_zeroshot - prompt-level filtering does most of the work
 DEDUP_CENTER_PX = 40  # detect_all_qwen: two detections this close in center are treated as the same real object
 
@@ -58,12 +67,22 @@ _model = None
 _processor = None
 
 
+def model_class_name(model_id: str) -> str:
+    """Return the Transformers class matching a Qwen-VL checkpoint family."""
+    return "Qwen2VLForConditionalGeneration" if "Qwen2-VL" in model_id else "Qwen2_5_VLForConditionalGeneration"
+
+
 def _lazy_load() -> None:
     global _model, _processor
     if _model is None:
-        from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
+        from transformers import AutoProcessor
 
-        _model = Qwen2_5_VLForConditionalGeneration.from_pretrained(MODEL_ID, torch_dtype=torch.float16, device_map="cuda")
+        if model_class_name(MODEL_ID) == "Qwen2VLForConditionalGeneration":
+            from transformers import Qwen2VLForConditionalGeneration as ModelClass
+        else:
+            from transformers import Qwen2_5_VLForConditionalGeneration as ModelClass
+
+        _model = ModelClass.from_pretrained(MODEL_ID, torch_dtype=torch.float16, device_map="cuda")
         _processor = AutoProcessor.from_pretrained(MODEL_ID)
 
 

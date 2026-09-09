@@ -40,7 +40,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
-import config
+from . import config
 
 
 @dataclass

@@ -26,6 +26,7 @@ ThreadedCamera(cv2 기반, debug_camera_preview.py / 101_data_collect_using_tele
 
 import os
 import threading
+import time
 
 import cv2
 import numpy as np
@@ -195,6 +196,8 @@ class ThreadedOrbbecRGBDCamera:
         self._color = None
         self._depth_vis = None
         self._depth_mm = None
+        self._capture_sequence = 0
+        self._capture_timestamp_s = 0.0
         self._running = True
         self._opened_event = threading.Event()
         self._open_error = None
@@ -258,21 +261,29 @@ class ThreadedOrbbecRGBDCamera:
             except Exception:
                 continue
 
-            ch, cw = color_oni.height, color_oni.width
-            craw = bytes(color_oni.get_buffer_as_uint8())
-            img_rgb = np.frombuffer(craw, dtype=np.uint8).reshape((ch, cw, 3))
-            color_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
+            try:
+                ch, cw = color_oni.height, color_oni.width
+                craw = bytes(color_oni.get_buffer_as_uint8())
+                img_rgb = np.frombuffer(craw, dtype=np.uint8).reshape((ch, cw, 3))
+                color_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
 
-            dh, dw = depth_oni.height, depth_oni.width
-            draw = bytes(depth_oni.get_buffer_as_uint16())
-            depth_mm = np.frombuffer(draw, dtype=np.uint16).reshape((dh, dw))
-            depth_vis = self._depth_to_vis(depth_mm)
+                dh, dw = depth_oni.height, depth_oni.width
+                draw = bytes(depth_oni.get_buffer_as_uint16())
+                depth_mm = np.frombuffer(draw, dtype=np.uint16).reshape((dh, dw))
+                depth_vis = self._depth_to_vis(depth_mm)
+            except Exception:
+                # OpenNI can invalidate a frame handle during stream
+                # shutdown/restart. Drop that pair and keep the capture loop
+                # alive for the next valid synchronized pair.
+                continue
 
             with self._lock:
                 self._ret = True
                 self._color = color_bgr
                 self._depth_vis = depth_vis
                 self._depth_mm = depth_mm
+                self._capture_sequence += 1
+                self._capture_timestamp_s = time.monotonic()
 
     def _depth_to_vis(self, depth_mm):
         clipped = np.clip(depth_mm, self.depth_min_mm, self.depth_max_mm).astype(np.float32)
@@ -299,6 +310,31 @@ class ThreadedOrbbecRGBDCamera:
         """가장 최근 깊이 프레임의 원본 mm 값(uint16, HxW). 캘리브레이션/디버그용."""
         with self._lock:
             return None if self._depth_mm is None else self._depth_mm.copy()
+
+    def read_rgbd_snapshot(self):
+        """Return one lock-consistent color/depth capture with its monotonic identity."""
+        with self._lock:
+            if self._color is None or self._depth_mm is None:
+                return self._ret, None, None, None, None
+            return (
+                self._ret,
+                self._color.copy(),
+                self._depth_mm.copy(),
+                self._capture_sequence,
+                self._capture_timestamp_s,
+            )
+
+    def sdk_xyz_provider(self):
+        """Return an on-demand OpenNI SDK depth-to-world converter."""
+        with self._lock:
+            stream = self.depth_stream
+        if stream is None:
+            raise RuntimeError("Astra depth stream is not open")
+        from primesense import openni2
+        def convert(u: int, v: int, depth_mm: int) -> tuple[float, float, float]:
+            point = openni2.convert_depth_to_world(stream, u, v, depth_mm)
+            return (float(point[0]) / 1000.0, float(point[1]) / 1000.0, float(point[2]) / 1000.0)
+        return convert
 
     def release(self):
         self._running = False

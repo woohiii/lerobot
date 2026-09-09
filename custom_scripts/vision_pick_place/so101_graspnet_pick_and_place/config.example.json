@@ -1,0 +1,10 @@
+{
+  "calibration_confirmed": false,
+  "camera_intrinsics": {"fx": 500.0, "fy": 500.0, "cx": 320.0, "cy": 240.0},
+  "camera_to_base": [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+  "center_exclusion_half_width_m": 0.05,
+  "arms": [
+    {"name": "left", "port": "/dev/so101_left", "workspace": [-0.40, -0.06, -0.30, 0.30, 0.00, 0.40], "bin_pose": [-0.25, 0.10, 0.15]},
+    {"name": "right", "port": "/dev/so101_right", "workspace": [0.06, 0.40, -0.30, 0.30, 0.00, 0.40], "bin_pose": [0.25, 0.10, 0.15]}
+  ]
+}
