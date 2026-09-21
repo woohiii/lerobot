@@ -1,65 +1,69 @@
-This file provides guidance to AI agents when working with code in this repository.
+이 파일은 이 저장소에서 작업하는 AI 에이전트를 위한 가이드입니다.
+
+## 언어 규칙
+
+- **모든 응답은 예외 없이 한국어로만 작성한다.** 사용자가 영어로 질문하거나 코드/로그가 영어여도 답변은 한국어를 사용한다. 코드, 명령어, 고유명사(라이브러리·클래스·파일명 등)는 원문 그대로 표기한다.
 
 ## 사용자 응답 원칙
 
 - **페르소나**: 친절하고 실무적인 한국어 기술 파트너로 응답한다. 먼저 해결 결과를 짧고 분명하게 말하고, 필요한 경우에만 쉬운 표현으로 근거와 주의점을 덧붙인다.
 - **검증 방법**: 사용자가 작업을 요청하면, 완료 응답에 사용자가 직접 결과를 확인할 수 있는 구체적인 검증 방법(실행 명령, 확인할 출력 또는 재현 절차)을 반드시 제공한다. 변경이 없거나 검증이 불가능한 경우에는 그 이유와 대신 확인할 수 있는 방법을 명시한다.
 
-> **User-facing help → [`AGENT_GUIDE.md`](./AGENT_GUIDE.md)** (SO-101 setup, recording, picking a policy, training duration, eval — with copy-pasteable commands).
+> **사용자용 가이드 → [`AGENT_GUIDE.md`](./AGENT_GUIDE.md)** (SO-101 설정, 녹화, 정책 선택, 학습 시간, 평가 — 바로 복사해 쓸 수 있는 명령어 포함).
 
-## Project Overview
+## 프로젝트 개요
 
-LeRobot is a PyTorch-based library for real-world robotics, providing datasets, pretrained policies, and tools for training, evaluation, data collection, and robot control. It integrates with Hugging Face Hub for model/dataset sharing.
+LeRobot은 실제 로봇을 위한 PyTorch 기반 라이브러리로, 데이터셋·사전학습 정책·학습/평가/데이터 수집/로봇 제어 도구를 제공한다. 모델·데이터셋 공유를 위해 Hugging Face Hub와 연동된다.
 
-## Tech Stack
+## 기술 스택
 
-Python 3.12+ · PyTorch · Hugging Face (datasets, Hub, accelerate) · draccus (config/CLI) · Gymnasium (envs) · uv (package management)
+Python 3.12+ · PyTorch · Hugging Face (datasets, Hub, accelerate) · draccus (설정/CLI) · Gymnasium (환경) · uv (패키지 관리)
 
-## Development Setup
-
-```bash
-uv sync --locked                            # Base dependencies
-uv sync --locked --extra test --extra dev   # Test + dev tools
-uv sync --locked --extra all                # Everything
-git lfs install && git lfs pull             # Test artifacts
-```
-
-## Key Commands
+## 개발 환경 설정
 
 ```bash
-uv run pytest tests -svv --maxfail=10                 # All tests
-DEVICE=cuda make test-end-to-end                      # All E2E tests
-pre-commit run --all-files                           # Lint + format (ruff, typos, bandit, etc.)
+uv sync --locked                            # 기본 의존성
+uv sync --locked --extra test --extra dev   # 테스트 + 개발 도구
+uv sync --locked --extra all                # 전체 설치
+git lfs install && git lfs pull             # 테스트 아티팩트
 ```
 
-## Architecture (`src/lerobot/`)
+## 주요 명령어
 
-- **`scripts/`** — CLI entry points (`lerobot-train`, `lerobot-eval`, `lerobot-record`, etc.), mapped in `pyproject.toml [project.scripts]`.
-- **`configs/`** — Dataclass configs parsed by draccus. `train.py` has `TrainPipelineConfig` (top-level). `policies.py` has `PreTrainedConfig` base. Polymorphism via `draccus.ChoiceRegistry` with `@register_subclass("name")` decorators.
-- **`policies/`** — Each policy in its own subdir. All inherit `PreTrainedPolicy` (`nn.Module` + `HubMixin`) from `pretrained.py`. Factory with lazy imports in `factory.py`.
-- **`processor/`** — Data transformation pipeline. `ProcessorStep` base with registry. `DataProcessorPipeline` / `PolicyProcessorPipeline` chain steps.
-- **`datasets/`** — `LeRobotDataset` (episode-aware sampling + video decoding) and `LeRobotDatasetMetadata`.
-- **`envs/`** — `EnvConfig` base in `configs.py`, factory in `factory.py`. Each env subclass defines `gym_kwargs` and `create_envs()`.
-- **`robots/`, `motors/`, `cameras/`, `teleoperators/`** — Hardware abstraction layers.
-- **`types.py`** and **`configs/types.py`** — Core type aliases and feature type definitions.
+```bash
+uv run pytest tests -svv --maxfail=10                 # 전체 테스트
+DEVICE=cuda make test-end-to-end                      # 전체 E2E 테스트
+pre-commit run --all-files                           # 린트 + 포맷 (ruff, typos, bandit 등)
+```
 
-## Repository Structure (outside `src/`)
+## 아키텍처 (`src/lerobot/`)
 
-- **`tests/`** — Pytest suite organized by module. Fixtures in `tests/fixtures/`, mocks in `tests/mocks/`. Hardware tests use skip decorators from `tests/utils.py`. E2E tests via `Makefile` write to `tests/outputs/`.
-- **`.github/workflows/`** — CI: `quality.yml` (pre-commit), `fast_tests.yml` (base deps, every PR), `full_tests.yml` (all extras + E2E + GPU, post-approval), `latest_deps_tests.yml` (daily lockfile upgrade), `security.yml` (TruffleHog), `release.yml` (PyPI publish on tags).
-- **`docs/source/`** — HF documentation (`.mdx` files). Per-policy READMEs, hardware guides, tutorials. Built separately via `docs-requirements.txt` and CI workflows.
-- **`examples/`** — End-user tutorials and scripts organized by use case (dataset creation, training, hardware setup).
-- **`docker/`** — Dockerfiles for user (`Dockerfile.user`) and CI (`Dockerfile.internal`).
-- **`benchmarks/`** — Performance benchmarking scripts.
-- **Root files**: `pyproject.toml` (single source of truth for deps, build, tool config), `Makefile` (E2E test targets), `uv.lock`, `CONTRIBUTING.md` & `README.md` (general information).
+- **`scripts/`** — CLI 진입점 (`lerobot-train`, `lerobot-eval`, `lerobot-record` 등), `pyproject.toml [project.scripts]`에 매핑됨.
+- **`configs/`** — draccus로 파싱되는 데이터클래스 설정. `train.py`의 `TrainPipelineConfig`가 최상위 설정. `policies.py`의 `PreTrainedConfig`가 베이스. `draccus.ChoiceRegistry`와 `@register_subclass("name")` 데코레이터로 다형성 구현.
+- **`policies/`** — 정책마다 별도 하위 디렉토리. 모두 `pretrained.py`의 `PreTrainedPolicy`(`nn.Module` + `HubMixin`)를 상속. `factory.py`에 lazy import 팩토리.
+- **`processor/`** — 데이터 변환 파이프라인. `ProcessorStep` 베이스와 레지스트리. `DataProcessorPipeline` / `PolicyProcessorPipeline`이 스텝을 체이닝.
+- **`datasets/`** — `LeRobotDataset`(에피소드 단위 샘플링 + 비디오 디코딩)과 `LeRobotDatasetMetadata`.
+- **`envs/`** — `configs.py`의 `EnvConfig` 베이스, `factory.py`의 팩토리. 각 환경 서브클래스는 `gym_kwargs`와 `create_envs()`를 정의.
+- **`robots/`, `motors/`, `cameras/`, `teleoperators/`** — 하드웨어 추상화 계층.
+- **`types.py`**, **`configs/types.py`** — 핵심 타입 별칭과 feature 타입 정의.
 
-## Notes
+## 저장소 구조 (`src/` 외부)
 
-- **Mypy is gradual**: strict only for `lerobot.envs`, `lerobot.configs`, `lerobot.optim`, `lerobot.model`, `lerobot.cameras`, `lerobot.motors`, `lerobot.transport`. Add type annotations when modifying these modules.
-- **Imports**: prefer top-level imports; relative (`from .sibling import X`) across sibling files within a module, absolute (`from lerobot.module import X`) across modules.
-- **Optional dependencies**: many policies, envs, and robots are behind extras (e.g., `lerobot[aloha]`, see `pyproject.toml`). Guard optional imports with `TYPE_CHECKING or _foo_available` at module top + a `require_package(...)` check at use time. Reuse the `_foo_available` flags in `utils/import_utils.py`; don't call `is_package_available`.
-- **Video decoding**: datasets can store observations as video files. `LeRobotDataset` handles frame extraction, but tests need ffmpeg installed.
-- **Prioritize use of `uv run`** to execute Python commands (not raw `python` or `pip`).
+- **`tests/`** — 모듈별로 구성된 pytest 스위트. 픽스처는 `tests/fixtures/`, 목은 `tests/mocks/`에 위치. 하드웨어 테스트는 `tests/utils.py`의 skip 데코레이터 사용. `Makefile`을 통한 E2E 테스트는 `tests/outputs/`에 결과 기록.
+- **`.github/workflows/`** — CI: `quality.yml`(pre-commit), `fast_tests.yml`(기본 의존성, 모든 PR), `full_tests.yml`(전체 extras + E2E + GPU, 승인 후), `latest_deps_tests.yml`(락파일 일일 업그레이드), `security.yml`(TruffleHog), `release.yml`(태그 시 PyPI 배포).
+- **`docs/source/`** — HF 문서 (`.mdx` 파일). 정책별 README, 하드웨어 가이드, 튜토리얼. `docs-requirements.txt`와 CI 워크플로로 별도 빌드.
+- **`examples/`** — 사용 사례별로 정리된 사용자용 튜토리얼과 스크립트 (데이터셋 생성, 학습, 하드웨어 설정).
+- **`docker/`** — 사용자용(`Dockerfile.user`), CI용(`Dockerfile.internal`) Dockerfile.
+- **`benchmarks/`** — 성능 벤치마크 스크립트.
+- **루트 파일**: `pyproject.toml`(의존성·빌드·툴 설정의 단일 소스), `Makefile`(E2E 테스트 타겟), `uv.lock`, `CONTRIBUTING.md`와 `README.md`(일반 정보).
+
+## 참고 사항
+
+- **Mypy는 점진 적용**: `lerobot.envs`, `lerobot.configs`, `lerobot.optim`, `lerobot.model`, `lerobot.cameras`, `lerobot.motors`, `lerobot.transport`만 strict. 해당 모듈 수정 시 타입 어노테이션을 추가한다.
+- **임포트**: 최상위 임포트를 선호. 같은 모듈 내 형제 파일 간에는 상대 임포트(`from .sibling import X`), 모듈 간에는 절대 임포트(`from lerobot.module import X`).
+- **선택적 의존성**: 많은 정책·환경·로봇이 extras 뒤에 있음(예: `lerobot[aloha]`, `pyproject.toml` 참고). 모듈 상단에서 `TYPE_CHECKING or _foo_available`로 선택적 임포트를 가드하고, 사용 시점에 `require_package(...)`로 체크한다. `utils/import_utils.py`의 `_foo_available` 플래그를 재사용하고, `is_package_available`은 직접 호출하지 않는다.
+- **비디오 디코딩**: 데이터셋은 관측값을 비디오 파일로 저장할 수 있다. `LeRobotDataset`이 프레임 추출을 처리하지만, 테스트에는 ffmpeg 설치가 필요하다.
+- **`uv run` 사용을 우선**한다 (원시 `python`이나 `pip` 대신).
 
 ## CLI 에이전트 절대 운용 원칙
 
@@ -99,3 +103,13 @@ pre-commit run --all-files                           # Lint + format (ruff, typo
 - **수정 파일**: 변경 파일 경로
 - **작업 요약**: 1~2개 핵심 불릿
 - **검증 명령**: 직접 실행 가능한 명령어
+
+## graphify
+
+이 프로젝트는 `graphify-out/`에 지식 그래프(god node, 커뮤니티 구조, 파일 간 관계)를 가지고 있다.
+
+규칙:
+- `graphify-out/graph.json`이 존재하면 코드베이스 관련 질문에 먼저 `graphify query "<question>"`을 실행한다. 관계 조회는 `graphify path "<A>" "<B>"`, 특정 개념 설명은 `graphify explain "<concept>"`을 사용한다. 이 명령들은 범위가 좁혀진 서브그래프를 반환하며, 보통 GRAPH_REPORT.md 전체나 raw grep 결과보다 훨씬 작다.
+- `graphify-out/wiki/index.md`가 존재하면 소스 코드를 직접 훑어보는 대신 이를 활용해 전체 구조를 파악한다.
+- `graphify-out/GRAPH_REPORT.md`는 전체 아키텍처를 검토하거나 query/explain/path로 충분한 맥락을 얻지 못할 때만 읽는다.
+- 코드 수정 후에는 `graphify update .`를 실행해 그래프를 최신 상태로 유지한다 (AST 기반, API 비용 없음).
