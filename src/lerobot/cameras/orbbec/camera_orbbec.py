@@ -33,6 +33,7 @@ class OrbbecCamera(Camera):
         self.config = config
         self.use_rgb = config.use_rgb
         self.use_depth = config.use_depth
+        self.depth_as_viz = config.depth_as_viz
         self.color_mode = config.color_mode
         self.preview = config.preview
         self._device: Any | None = None
@@ -154,7 +155,7 @@ class OrbbecCamera(Camera):
                     depth = np.frombuffer(raw, dtype=np.uint16).reshape(frame.height, frame.width).copy()
                     if depth.shape != (self.height, self.width):
                         depth = cv2.resize(depth, (self.width, self.height), interpolation=cv2.INTER_NEAREST)
-                    depth = depth[..., np.newaxis]
+                    depth = self._depth_to_viz(depth) if self.depth_as_viz else depth[..., np.newaxis]
                 with self._lock:
                     if color is not None:
                         self._color = color
@@ -166,6 +167,14 @@ class OrbbecCamera(Camera):
                 if not self._stop_event.is_set():
                     self._error = exc
                 return
+
+    def _depth_to_viz(self, depth_mm: NDArray[np.uint16]) -> NDArray[np.uint8]:
+        min_mm, max_mm = self.config.depth_viz_min_mm, self.config.depth_viz_max_mm
+        normalized = np.clip((depth_mm.astype(np.float32) - min_mm) / (max_mm - min_mm), 0, 1)
+        colored_bgr = cv2.applyColorMap((255 * (1 - normalized)).astype(np.uint8), cv2.COLORMAP_TURBO)
+        colored_rgb = colored_bgr[..., ::-1].copy()
+        colored_rgb[depth_mm == 0] = 0
+        return colored_rgb
 
     def _latest(self, depth: bool, max_age_ms: int) -> NDArray[Any]:
         if not self.is_connected:

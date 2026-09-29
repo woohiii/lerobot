@@ -852,6 +852,31 @@ def test_groot_n1_7_pack_inputs_rejects_action_shape_above_core_limits():
         step(transition)
 
 
+def test_groot_n1_7_pack_inputs_resizes_mixed_camera_resolutions_before_stacking():
+    step = GrootN17PackInputsStep(
+        max_state_dim=12,
+        max_action_dim=12,
+        normalize_min_max=False,
+        video_modality_keys=["left_wrist", "right_wrist", "astra_rgb", "astra_depth_viz"],
+    )
+    transition = {
+        TransitionKey.OBSERVATION: {
+            f"{OBS_IMAGES}.left_wrist": torch.full((1, 3, 480, 640), 1, dtype=torch.uint8),
+            f"{OBS_IMAGES}.right_wrist": torch.full((1, 3, 480, 640), 2, dtype=torch.uint8),
+            f"{OBS_IMAGES}.astra_rgb": torch.full((1, 3, 240, 320), 3, dtype=torch.uint8),
+            f"{OBS_IMAGES}.astra_depth_viz": torch.full((1, 3, 240, 320), 4, dtype=torch.uint8),
+        },
+        TransitionKey.COMPLEMENTARY_DATA: {"task": ["Fold the towel"]},
+    }
+
+    output = step(transition)
+    video = output[TransitionKey.OBSERVATION]["video"]
+
+    assert video.shape == (1, 1, 4, 480, 640, 3)
+    assert video.dtype == np.uint8
+    assert [int(video[0, 0, view, 0, 0, 0]) for view in range(4)] == [1, 2, 3, 4]
+
+
 def test_groot_n1_7_pack_inputs_clips_and_masks_only_valid_action_horizon():
     step = GrootN17PackInputsStep(
         action_horizon=40,

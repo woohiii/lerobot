@@ -414,3 +414,68 @@ Single-task grasp-and-place with 50 clean episodes: ACT should reach **> 70% suc
 - **Community:** [Discord](https://discord.com/invite/s3KuuzsPFb) · [Hub `LeRobot` tag](https://huggingface.co/datasets?other=LeRobot) · [Dataset visualizer](https://huggingface.co/spaces/lerobot/visualize_dataset)
 
 > Keep this file current. If you learn a rule that would prevent a class of user mistakes, add it here and in [`AGENTS.md`](./AGENTS.md).
+
+## 10. SO-101 towel dataset → GR00T N1.7 (4090 server)
+
+This workflow uses the pinned private dataset `Woohi123/towel_fold_v1_balanced150` and keeps training on the server. The local machine is only the robot/client; do not run training on its 8 GB GPU. Commands below are templates to run yourself in the server terminal after SSH.
+
+### Server preflight and training
+
+```bash
+ssh dgu@210.94.172.166
+cd ~/lerobot
+git switch <branch-containing-this-change>
+uv sync --locked --extra groot --extra feetech --extra async
+uv run hf auth whoami
+nvidia-smi
+df -h .
+uv run python custom_scripts/towel_groot_training.py validate \
+  --dataset-root ~/.cache/huggingface/lerobot/Woohi123/towel_fold_v1_balanced150
+uv run python custom_scripts/towel_groot_training.py command --phase smoke | bash
+```
+
+The smoke run is 20 optimizer steps with batch 1 / accumulation 8. Confirm it completes, saves output, and remains within VRAM before requesting a full run. To print the full 60,000-step command (do not pipe it to `bash` until smoke and storage checks are satisfactory):
+
+```bash
+uv run python custom_scripts/towel_groot_training.py command --phase full
+```
+
+The split is deterministic (seed 42), source-disjoint, and uses all materialized episodes not assigned to validation. Because the 22 wrinkled source episodes were replicated into 50 stored episodes, source-disjointness leaves fewer than 40 wrinkled training rows in some seeds; episode IDs are never duplicated to fake a count. Dataset and model Hub repos are private.
+
+### Remote policy serving and staged evaluation
+
+Start the server after training, substituting the saved model repo or local checkpoint:
+
+```bash
+uv run python -m lerobot.async_inference.policy_server \
+  --host=127.0.0.1 --port=8080 --fps=30 --inference_latency=0.033
+```
+
+On the robot workstation, open a second terminal and keep this tunnel alive:
+
+```bash
+ssh -N -L 8080:127.0.0.1:8080 dgu@210.94.172.166
+```
+
+First run the no-hardware self-check, then dry-run with your known-good bimanual robot/camera config. Use the exact four dataset camera names and resolutions (wrist RGB 480×640; Astra RGB and depth visualization 240×320). `astra_depth_viz` must be an RGB visualization stream, not raw one-channel depth.
+
+```bash
+uv run python custom_scripts/towel_groot_remote_eval.py --self-check
+uv run python custom_scripts/towel_groot_remote_eval.py --dry-run --max-actions=1 \
+  --robot.type=bi_so_follower --robot.id=towel_eval \
+  --robot.left_arm_config.port=<LEFT_PORT> --robot.right_arm_config.port=<RIGHT_PORT> \
+  --robot.cameras='<YOUR_FOUR_CAMERA_CONFIG>' \
+  --task='Unfold a towel with a folded corner, fold it in half, then fold both sides in like a gate fold' \
+  --server_address=127.0.0.1:8080 --policy_type=groot \
+  --pretrained_name_or_path=Woohi123/towel_fold_v1_balanced150_groot_n17 \
+  --actions_per_chunk=16 --policy_device=cuda --client_device=cpu
+```
+
+Only after verifying live camera views, motor ordering/calibration, workspace clearance, and the dry-run logs, run a one-action pilot with a physical emergency stop operator present. The client rejects malformed/non-finite observations/actions, actions older than 0.75 s (or timestamps >0.25 s in the future), and any joint target more than 5 degrees from the measured pose. Underlying camera drivers must also enforce capture timeouts; frame timestamps are not exposed by every driver, so identical static images alone are not considered stale. Type `e` then Enter in the client terminal to immediately disable torque on both arms; the physical stop remains the primary emergency stop. Use `--max-actions=1` for the pilot; stop immediately on unexpected motion. `--execute` is the only mode allowed to call `send_action`.
+
+```bash
+uv run python custom_scripts/towel_groot_remote_eval.py --execute --max-actions=1 --max-delta=5 \
+  <same robot, camera, task, server, and policy options as dry-run>
+```
+
+Then increase duration gradually, inspecting every trial. Run 30 trials per task condition and record success/failure, dropped/invalid camera frames, latency, and any safety stop; do not launch an unattended 30-trial batch on the physical robot.

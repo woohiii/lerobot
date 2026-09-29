@@ -28,6 +28,10 @@ class OrbbecCameraConfig(CameraConfig):
     warmup_s: float = 1.0
     preview: bool = False
     openni2_redist_dir: Path | None = None
+    # Emit metric depth as a 3-channel RGB visualization for image-only policies.
+    depth_as_viz: bool = False
+    depth_viz_min_mm: int = 200
+    depth_viz_max_mm: int = 2000
 
     def __post_init__(self) -> None:
         self.color_mode = ColorMode(self.color_mode)
@@ -35,3 +39,5 @@ class OrbbecCameraConfig(CameraConfig):
             raise ValueError("At least one of `use_rgb` or `use_depth` must be enabled.")
         if min(self.fps, self.width, self.height, self.depth_width, self.depth_height) <= 0:
             raise ValueError("Camera dimensions and fps must be positive.")
+        if self.depth_viz_min_mm < 0 or self.depth_viz_max_mm <= self.depth_viz_min_mm:
+            raise ValueError("Depth visualization range must have max_mm > min_mm >= 0.")

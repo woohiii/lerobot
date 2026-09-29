@@ -1352,6 +1352,23 @@ def _to_uint8_np_bthwc(img_t: torch.Tensor) -> np.ndarray:
     raise ValueError(f"Expected image tensor shape (B, C, H, W) or (B, T, C, H, W), got {tuple(img_t.shape)}")
 
 
+def _resize_video_hw(video: np.ndarray, target_hw: tuple[int, int]) -> np.ndarray:
+    """Resize every frame in a BTHWC video to the requested spatial size."""
+    batch, horizon, height, width, channels = video.shape
+    target_height, target_width = target_hw
+    if (height, width) == (target_height, target_width):
+        return video
+    resized = np.empty((batch, horizon, target_height, target_width, channels), dtype=video.dtype)
+    for batch_index in range(batch):
+        for frame_index in range(horizon):
+            resized[batch_index, frame_index] = cv2.resize(
+                video[batch_index, frame_index],
+                (target_width, target_height),
+                interpolation=cv2.INTER_AREA,
+            )
+    return resized
+
+
 def _align_video_horizon(video: np.ndarray, horizon: int | None) -> np.ndarray:
     """Match the checkpoint video horizon by truncating or left-padding frames."""
 
@@ -1852,6 +1869,8 @@ class GrootN17PackInputsStep(ProcessorStep):
         img_keys = self._ordered_image_keys(obs)
         if img_keys:
             cams = [_align_video_horizon(_to_uint8_np_bthwc(obs[k]), self.video_horizon) for k in img_keys]
+            target_hw = cams[0].shape[2:4]
+            cams = [_resize_video_hw(cam, target_hw) for cam in cams]
             video = np.stack(cams, axis=2)  # (B, T, V, H, W, C)
             obs["video"] = video
             image_keys_to_remove = [key for key in obs if key.startswith(OBS_IMAGES)]
