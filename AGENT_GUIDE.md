@@ -423,7 +423,7 @@ This workflow uses the pinned private dataset `Woohi123/towel_fold_v1_balanced15
 
 ```bash
 ssh dgu@210.94.172.166
-cd ~/lerobot
+cd ~/vla/lerobot
 git switch <branch-containing-this-change>
 uv sync --locked --extra groot --extra feetech --extra async
 uv run hf auth whoami
