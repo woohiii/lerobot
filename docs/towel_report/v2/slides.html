@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>수건 접기 정책 학습 진행 보고</title>
+<style>
+/* 디자인 규칙: 배경 1색, 본문 잉크색, 보조 회색, 강조색은 장표당 1곳, 박스는 채우기 없이 얇은 테두리 */
+:root{--bg:#F4F2EC;--ink:#15171A;--mute:#6B6F76;--line:#BDB8AA;--accent:#D9432B;
+--font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;transform-origin:center;background:var(--bg);color:var(--ink);font-family:var(--font)}
+.slide{position:absolute;inset:0;padding:96px 120px 90px;display:none}
+.slide.on{display:block}
+h1{word-break:keep-all;font-size:64px;font-weight:800;letter-spacing:-1.5px;line-height:1.2;max-width:1500px}
+.sub{font-size:32px;color:var(--mute);margin-top:22px}
+.pg{position:absolute;right:120px;bottom:48px;font-size:26px;color:var(--mute)}
+.box{border:2px solid var(--line);border-radius:6px;padding:26px 28px}
+.k{font-size:26px;color:var(--mute)}
+.n{font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-top:6px}
+.n small{font-size:28px;font-weight:600;color:var(--mute);margin-left:8px}
+.acc{color:var(--accent)}
+/* 슬라이드 1 */
+.flow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;margin-top:70px}
+.flow .box{border-radius:0;margin-left:-2px}
+.flow .st{font-size:34px;font-weight:700}
+.flow .ep{font-size:28px;color:var(--mute);margin-top:12px;line-height:1.5}
+.flow .res{font-size:28px;margin-top:22px;padding-top:18px;border-top:2px solid var(--line);line-height:1.45}
+.why{word-break:keep-all;margin-top:60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;font-size:34px;line-height:1.5}
+.why b{font-weight:800}
+/* 슬라이드 2 */
+.two{display:grid;grid-template-columns:760px 1fr;gap:90px;margin-top:64px}
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:20px 0;border-bottom:2px solid var(--line);font-size:34px}
+.row span:last-child{font-weight:800;font-size:40px}
+.tl{margin-top:8px}
+.tl li{word-break:keep-all;list-style:none;padding:24px 0;border-bottom:2px solid var(--line);font-size:34px;display:flex;gap:26px;align-items:baseline}
+.tl .t{font-size:26px;color:var(--mute);min-width:150px}
+.tl li.now{font-weight:800}
+.tl li.now .t{color:var(--accent)}
+.tl li.dim{color:var(--mute)}
+aside{display:none;position:absolute;left:0;right:0;bottom:0;background:#15171A;color:#F4F2EC;font-size:26px;line-height:1.55;padding:26px 60px;max-height:48%;overflow:auto;z-index:9}
+body.notes aside.cur{display:block}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<section class="slide on">
+  <h1>반접기부터 대문접기까지, 한 번의 동작으로 이어 담은 데이터셋</h1>
+  <p class="sub">SO-101 양팔 로봇 · 과제 문구 "Fold the flat towel in half, then fold both sides in like a gate fold"</p>
+  <div class="flow">
+    <div class="box"><div class="st">원본 수집</div><div class="ep">72개 에피소드<br>사람이 단계 경계를 검수</div></div>
+    <div class="box"><div class="st">조건에 맞는 것만</div><div class="ep">46개 선택<br>펼친 수건에서 시작</div></div>
+    <div class="box"><div class="st">균형 있게 복제</div><div class="ep">97개 에피소드<br>159,084프레임</div></div>
+    <div class="box"><div class="st">학습 · 평가 분리</div><div class="ep">79개 · 18개<br>원본 에피소드 단위</div></div>
+  </div>
+  <div class="why">
+    <div><b class="acc">한 에피소드 = 한 번의 시도.</b> 반접기를 시작하는 프레임부터 대문접기가 끝나는 프레임까지 끊지 않고 이어 잘랐습니다. 정책이 두 동작 사이의 전환까지 배웁니다.</div>
+    <div>방향을 다시 잡아야 하는 25개 에피소드는 뺐습니다. 평가는 <b>원본 단위</b>로 나눠, 복제된 같은 영상이 학습과 평가에 섞이지 않게 했습니다.</div>
+  </div>
+  <div class="pg">1 / 2</div>
+  <aside class="cur"></aside>
+</section>
+
+<section class="slide">
+  <h1>ACT를 40,000스텝 학습하고, 실제 로봇 30회로 성공률을 잽니다</h1>
+  <p class="sub">성공률은 아직 측정 전이고, 이 30회가 이번 설계가 맞았는지 알려줍니다</p>
+  <div class="two">
+    <div>
+      <div class="row"><span>정책</span><span>ACT</span></div>
+      <div class="row"><span>학습 스텝</span><span>40,000</span></div>
+      <div class="row"><span>배치 크기</span><span>4</span></div>
+      <div class="row"><span>평가 주기</span><span>10,000스텝</span></div>
+      <div class="row"><span>예상 학습 시간</span><span>약 3시간</span></div>
+      <p class="k" style="margin-top:22px;line-height:1.5">8GB GPU에서 초당 약 4.4스텝. 데이터를 약 1.2바퀴 돕니다.</p>
+    </div>
+    <ul class="tl">
+      <li class="now"><span class="t acc">진행 중</span>데이터 자르기와 학습 준비</li>
+      <li><span class="t">다음</span>ACT 학습, 평가 손실이 오르면 이전 체크포인트 사용</li>
+      <li><span class="t">그다음</span>같은 조건으로 30회 시도, 성공 기준을 미리 정해 성공률 측정</li>
+      <li class="dim"><span class="t">이후</span>실패 유형 분석, 시뮬레이션에서 수건 시나리오 보강</li>
+    </ul>
+  </div>
+  <div class="pg">2 / 2</div>
+  <aside class="cur"></aside>
+</section>
+</div>
+
+<template id="n1">
+이번에 학습하는 과제는 하나입니다. 펼쳐진 수건을 반으로 접고, 이어서 양쪽을 안으로 접는 대문접기까지 한 번에 하는 것입니다. 데이터는 원격 조작으로 모은 원본 72개 에피소드에서 출발합니다. 각 에피소드의 단계 경계는 사람이 검수했습니다. 그중 반접기와 대문접기가 모두 있고 수건이 깨끗이 펼쳐진 상태에서 시작하는 46개를 골랐습니다.
+이 46개를 균형 있게 복제해 97개 에피소드, 약 15만 9천 프레임을 만들었습니다. 한 에피소드는 반접기를 시작하는 프레임부터 대문접기가 끝나는 프레임까지 끊지 않고 이어서 잘랐습니다. 그래야 정책이 두 동작 사이의 전환까지 배웁니다. 방향을 다시 잡아야 하는 에피소드 25개는 제외했습니다. 학습 79개와 평가 18개는 원본 에피소드 단위로 나눠서, 복제된 같은 영상이 양쪽에 섞이지 않게 했습니다.
+</template>
+<template id="n2">
+학습은 ACT 정책으로 4만 스텝을 돌립니다. 배치는 4이고, 8기가 GPU에서 초당 약 4.4스텝이라 평가 시간을 포함해 약 3시간을 예상합니다. 이렇게 하면 데이터를 약 1.2바퀴 돕니다. 평가는 1만 스텝마다 하고, 평가 손실이 다시 오르면 과적합으로 보고 이전 체크포인트를 쓰겠습니다.
+가장 중요한 검증은 그다음입니다. 실제 로봇으로 같은 조건에서 30번 시도하고, 성공 기준을 미리 정해서 성공률을 재겠습니다. 손실값이 내려가도 성공률이 오른다는 보장은 없기 때문입니다. 지금 성공률은 측정 전입니다. 실패한다면 실패 유형을 분석하고, 시뮬레이션에서 수건 시나리오를 늘려 보강할 계획입니다.
+</template>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')],stage=document.getElementById('stage');
+let i=0;
+slides.forEach((s,k)=>{s.querySelector('aside').textContent=document.getElementById('n'+(k+1)).content.textContent.trim()});
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${s})`}
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('on',k===i))}
+addEventListener('resize',fit);fit();
+addEventListener('keydown',e=>{
+  if(['ArrowRight','PageDown',' '].includes(e.key))show(i+1);
+  else if(['ArrowLeft','PageUp'].includes(e.key))show(i-1);
+  else if(e.key==='n'||e.key==='N')document.body.classList.toggle('notes');
+  else if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+});
+</script>
+</body>
+</html>
