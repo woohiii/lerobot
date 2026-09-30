@@ -3,80 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>수건 접기 정책 학습 진행 보고</title>
+<title>수건 접기 정책 학습 v2</title>
 <style>
-/* 디자인 규칙: 배경 1색, 본문 잉크색, 보조 회색, 강조색은 장표당 1곳, 박스는 채우기 없이 얇은 테두리 */
-:root{--bg:#F4F2EC;--ink:#15171A;--mute:#6B6F76;--line:#BDB8AA;--accent:#D9432B;
+/* v2 디자인 규칙: 짙은 남색 배경 · 밝은 잉크 · 강조색 앰버는 장표당 1곳 · 큰 숫자 중심 · 박스 없이 가는 선만 사용 */
+:root{--bg:#0E1A2B;--ink:#EEF2F7;--mute:#8FA0B5;--line:#2A3B52;--accent:#F2B84B;
 --font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#000;overflow:hidden}
 #stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;transform-origin:center;background:var(--bg);color:var(--ink);font-family:var(--font)}
-.slide{position:absolute;inset:0;padding:96px 120px 90px;display:none}
+.slide{position:absolute;inset:0;padding:84px 130px 90px;display:none}
 .slide.on{display:block}
-h1{word-break:keep-all;font-size:64px;font-weight:800;letter-spacing:-1.5px;line-height:1.2;max-width:1500px}
-.sub{font-size:32px;color:var(--mute);margin-top:22px}
-.pg{position:absolute;right:120px;bottom:48px;font-size:26px;color:var(--mute)}
-.box{border:2px solid var(--line);border-radius:6px;padding:26px 28px}
-.k{font-size:26px;color:var(--mute)}
-.n{font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-top:6px}
-.n small{font-size:28px;font-weight:600;color:var(--mute);margin-left:8px}
+.tag{font-size:26px;letter-spacing:6px;color:var(--mute);font-weight:600}
+h1{word-break:keep-all;font-size:58px;font-weight:700;letter-spacing:-1px;line-height:1.28;max-width:1560px;margin-top:22px}
+.pg{position:absolute;left:130px;bottom:50px;font-size:24px;color:var(--mute);letter-spacing:3px}
 .acc{color:var(--accent)}
-/* 슬라이드 1 */
-.flow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;margin-top:70px}
-.flow .box{border-radius:0;margin-left:-2px}
-.flow .st{font-size:34px;font-weight:700}
-.flow .ep{font-size:28px;color:var(--mute);margin-top:12px;line-height:1.5}
-.flow .res{font-size:28px;margin-top:22px;padding-top:18px;border-top:2px solid var(--line);line-height:1.45}
-.why{word-break:keep-all;margin-top:60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;font-size:34px;line-height:1.5}
-.why b{font-weight:800}
-/* 슬라이드 2 */
-.two{display:grid;grid-template-columns:760px 1fr;gap:90px;margin-top:64px}
-.row{display:flex;justify-content:space-between;align-items:baseline;padding:20px 0;border-bottom:2px solid var(--line);font-size:34px}
-.row span:last-child{font-weight:800;font-size:40px}
-.tl{margin-top:8px}
-.tl li{word-break:keep-all;list-style:none;padding:24px 0;border-bottom:2px solid var(--line);font-size:34px;display:flex;gap:26px;align-items:baseline}
-.tl .t{font-size:26px;color:var(--mute);min-width:150px}
-.tl li.now{font-weight:800}
-.tl li.now .t{color:var(--accent)}
-.tl li.dim{color:var(--mute)}
-aside{display:none;position:absolute;left:0;right:0;bottom:0;background:#15171A;color:#F4F2EC;font-size:26px;line-height:1.55;padding:26px 60px;max-height:48%;overflow:auto;z-index:9}
+/* 슬라이드 1: 큰 숫자 깔때기 */
+.fun{display:flex;align-items:flex-end;margin-top:78px;border-bottom:2px solid var(--line);padding-bottom:34px}
+.fun>div{flex:1}
+.fun .arrow{flex:0 0 90px;font-size:56px;color:var(--line);text-align:center;padding-bottom:70px}
+.fun .num{font-size:118px;font-weight:800;letter-spacing:-3px;line-height:1}
+.fun .num.hot{color:var(--accent)}
+.fun .lab{font-size:28px;color:var(--mute);margin-top:14px;word-break:keep-all}
+.txt{margin-top:56px;font-size:34px;line-height:1.6;max-width:1500px;word-break:keep-all}
+.txt p+p{margin-top:22px}
+.txt b{font-weight:800}
+.txt .m{color:var(--mute)}
+/* 슬라이드 2: 설정 격자 + 세로 단계선 */
+.split{display:grid;grid-template-columns:700px 1fr;gap:110px;margin-top:70px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:44px 30px}
+.kv .k{font-size:24px;color:var(--mute)}
+.kv .v{font-size:56px;font-weight:800;letter-spacing:-1px;margin-top:6px;line-height:1.1}
+.kv .v small{font-size:26px;font-weight:600;color:var(--mute);margin-left:6px}
+.note{margin-top:46px;font-size:26px;color:var(--mute);line-height:1.5;word-break:keep-all}
+.step{position:relative;padding-left:56px}
+.step li{list-style:none;position:relative;padding-bottom:50px;font-size:34px;line-height:1.4;word-break:keep-all}
+.step li::before{content:"";position:absolute;left:-56px;top:12px;width:20px;height:20px;border-radius:50%;border:3px solid var(--mute);background:var(--bg)}
+.step li::after{content:"";position:absolute;left:-47px;top:38px;width:2px;height:calc(100% - 26px);background:var(--line)}
+.step li:last-child::after{display:none}
+.step li.now::before{background:var(--accent);border-color:var(--accent)}
+.step li.now{font-weight:800}
+.step li.dim{color:var(--mute)}
+.step .t{display:block;font-size:24px;color:var(--mute);font-weight:600;margin-bottom:4px}
+.step li.now .t{color:var(--accent)}
+aside{display:none;position:absolute;left:0;right:0;bottom:0;background:#050B14;color:#EEF2F7;font-size:26px;line-height:1.55;padding:26px 60px;max-height:48%;overflow:auto;z-index:9}
 body.notes aside.cur{display:block}
+@page{size:1920px 1080px;margin:0}
+@media print{html,body{overflow:visible;height:auto;background:none}#stage{position:static;transform:none!important;width:1920px;height:auto}.slide{display:block!important;position:relative;width:1920px;height:1080px;break-after:page;page-break-after:always}aside{display:none!important}}
 </style>
 </head>
 <body>
 <div id="stage">
 
 <section class="slide on">
-  <h1>반접기부터 대문접기까지, 한 번의 동작으로 이어 담은 데이터셋</h1>
-  <p class="sub">SO-101 양팔 로봇 · 과제 문구 "Fold the flat towel in half, then fold both sides in like a gate fold"</p>
-  <div class="flow">
-    <div class="box"><div class="st">원본 수집</div><div class="ep">72개 에피소드<br>사람이 단계 경계를 검수</div></div>
-    <div class="box"><div class="st">조건에 맞는 것만</div><div class="ep">46개 선택<br>펼친 수건에서 시작</div></div>
-    <div class="box"><div class="st">균형 있게 복제</div><div class="ep">97개 에피소드<br>159,084프레임</div></div>
-    <div class="box"><div class="st">학습 · 평가 분리</div><div class="ep">79개 · 18개<br>원본 에피소드 단위</div></div>
+  <div class="tag">DATASET</div>
+  <h1>반접기부터 대문접기까지, 한 번의 동작으로 이어 담았습니다</h1>
+  <div class="fun">
+    <div><div class="num">72</div><div class="lab">원본 에피소드<br>단계 경계를 사람이 검수</div></div>
+    <div class="arrow">›</div>
+    <div><div class="num">46</div><div class="lab">조건에 맞는 원본<br>펼친 수건에서 시작</div></div>
+    <div class="arrow">›</div>
+    <div><div class="num">97</div><div class="lab">복제 포함 에피소드<br>학습 79 · 평가 18</div></div>
+    <div class="arrow">›</div>
+    <div><div class="num hot">159,084</div><div class="lab">프레임</div></div>
   </div>
-  <div class="why">
-    <div><b class="acc">한 에피소드 = 한 번의 시도.</b> 반접기를 시작하는 프레임부터 대문접기가 끝나는 프레임까지 끊지 않고 이어 잘랐습니다. 정책이 두 동작 사이의 전환까지 배웁니다.</div>
-    <div>방향을 다시 잡아야 하는 25개 에피소드는 뺐습니다. 평가는 <b>원본 단위</b>로 나눠, 복제된 같은 영상이 학습과 평가에 섞이지 않게 했습니다.</div>
+  <div class="txt">
+    <p><b>한 에피소드가 한 번의 시도입니다.</b> 반접기 시작 프레임부터 대문접기가 끝나는 프레임까지 끊지 않고 이어 잘라, 두 동작 사이의 전환까지 배우게 했습니다.</p>
+    <p class="m">방향을 다시 잡아야 하는 25개는 뺐고, 평가는 원본 에피소드 단위로 나눠 복제된 같은 영상이 학습과 평가에 섞이지 않게 했습니다.</p>
   </div>
   <div class="pg">1 / 2</div>
   <aside class="cur"></aside>
 </section>
 
 <section class="slide">
+  <div class="tag">TRAINING &amp; EVALUATION</div>
   <h1>ACT를 40,000스텝 학습하고, 실제 로봇 30회로 성공률을 잽니다</h1>
-  <p class="sub">성공률은 아직 측정 전이고, 이 30회가 이번 설계가 맞았는지 알려줍니다</p>
-  <div class="two">
+  <div class="split">
     <div>
-      <div class="row"><span>정책</span><span>ACT</span></div>
-      <div class="row"><span>학습 스텝</span><span>40,000</span></div>
-      <div class="row"><span>배치 크기</span><span>4</span></div>
-      <div class="row"><span>평가 주기</span><span>10,000스텝</span></div>
-      <div class="row"><span>예상 학습 시간</span><span>약 3시간</span></div>
-      <p class="k" style="margin-top:22px;line-height:1.5">8GB GPU에서 초당 약 4.4스텝. 데이터를 약 1.2바퀴 돕니다.</p>
+      <div class="kv">
+        <div><div class="k">정책</div><div class="v">ACT</div></div>
+        <div><div class="k">학습 스텝</div><div class="v">40,000</div></div>
+        <div><div class="k">배치 크기</div><div class="v">4</div></div>
+        <div><div class="k">평가 주기</div><div class="v">10,000<small>스텝</small></div></div>
+        <div><div class="k">학습 시간</div><div class="v">약 3<small>시간</small></div></div>
+        <div><div class="k">데이터 반복</div><div class="v">1.2<small>바퀴</small></div></div>
+      </div>
+      <p class="note">8GB GPU에서 초당 약 4.4스텝. 성공률은 아직 측정 전이라, 이 30회가 이번 설계가 맞았는지 알려줍니다.</p>
     </div>
-    <ul class="tl">
-      <li class="now"><span class="t acc">진행 중</span>데이터 자르기와 학습 준비</li>
+    <ul class="step">
+      <li class="now"><span class="t">진행 중</span>데이터 자르기와 학습 준비</li>
       <li><span class="t">다음</span>ACT 학습, 평가 손실이 오르면 이전 체크포인트 사용</li>
       <li><span class="t">그다음</span>같은 조건으로 30회 시도, 성공 기준을 미리 정해 성공률 측정</li>
       <li class="dim"><span class="t">이후</span>실패 유형 분석, 시뮬레이션에서 수건 시나리오 보강</li>

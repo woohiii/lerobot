@@ -41,6 +41,8 @@ h1{word-break:keep-all;font-size:64px;font-weight:800;letter-spacing:-1.5px;line
 .tl li.dim{color:var(--mute)}
 aside{display:none;position:absolute;left:0;right:0;bottom:0;background:#15171A;color:#F4F2EC;font-size:26px;line-height:1.55;padding:26px 60px;max-height:48%;overflow:auto;z-index:9}
 body.notes aside.cur{display:block}
+@page{size:1920px 1080px;margin:0}
+@media print{html,body{overflow:visible;height:auto;background:none}#stage{position:static;transform:none!important;width:1920px;height:auto}.slide{display:block!important;position:relative;width:1920px;height:1080px;break-after:page;page-break-after:always}aside{display:none!important}}
 </style>
 </head>
 <body>
