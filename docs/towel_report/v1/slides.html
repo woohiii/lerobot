@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>수건 접기 정책 학습 진행 보고</title>
+<style>
+/* 디자인 규칙: 배경 1색, 본문 잉크색, 보조 회색, 강조색은 장표당 1곳, 박스는 채우기 없이 얇은 테두리 */
+:root{--bg:#F4F2EC;--ink:#15171A;--mute:#6B6F76;--line:#BDB8AA;--accent:#D9432B;
+--font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;transform-origin:center;background:var(--bg);color:var(--ink);font-family:var(--font)}
+.slide{position:absolute;inset:0;padding:96px 120px 90px;display:none}
+.slide.on{display:block}
+h1{word-break:keep-all;font-size:64px;font-weight:800;letter-spacing:-1.5px;line-height:1.2;max-width:1500px}
+.sub{font-size:32px;color:var(--mute);margin-top:22px}
+.pg{position:absolute;right:120px;bottom:48px;font-size:26px;color:var(--mute)}
+.box{border:2px solid var(--line);border-radius:6px;padding:26px 28px}
+.k{font-size:26px;color:var(--mute)}
+.n{font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-top:6px}
+.n small{font-size:28px;font-weight:600;color:var(--mute);margin-left:8px}
+.acc{color:var(--accent)}
+/* 슬라이드 1 */
+.flow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;margin-top:70px}
+.flow .box{border-radius:0;margin-left:-2px}
+.flow .st{font-size:34px;font-weight:700}
+.flow .ep{font-size:28px;color:var(--mute);margin-top:12px;line-height:1.5}
+.flow .res{font-size:28px;margin-top:22px;padding-top:18px;border-top:2px solid var(--line);line-height:1.45}
+.why{word-break:keep-all;margin-top:60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;font-size:34px;line-height:1.5}
+.why b{font-weight:800}
+/* 슬라이드 2 */
+.two{display:grid;grid-template-columns:760px 1fr;gap:90px;margin-top:64px}
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:20px 0;border-bottom:2px solid var(--line);font-size:34px}
+.row span:last-child{font-weight:800;font-size:40px}
+.tl{margin-top:8px}
+.tl li{word-break:keep-all;list-style:none;padding:24px 0;border-bottom:2px solid var(--line);font-size:34px;display:flex;gap:26px;align-items:baseline}
+.tl .t{font-size:26px;color:var(--mute);min-width:150px}
+.tl li.now{font-weight:800}
+.tl li.now .t{color:var(--accent)}
+.tl li.dim{color:var(--mute)}
+aside{display:none;position:absolute;left:0;right:0;bottom:0;background:#15171A;color:#F4F2EC;font-size:26px;line-height:1.55;padding:26px 60px;max-height:48%;overflow:auto;z-index:9}
+body.notes aside.cur{display:block}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<section class="slide on">
+  <h1>수건을 네 토막으로 나눠 배웠지만, 이어 붙일 수 없다고 판단했습니다</h1>
+  <p class="sub">SO-101 양팔 로봇 · ACT 정책 · 원본 72개 에피소드를 균형 복제해 150개로 확장</p>
+  <div class="flow">
+    <div class="box"><div class="st">펼치기</div><div class="ep">100개 · 230,007프레임</div><div class="res">20,000스텝 학습 완료</div></div>
+    <div class="box"><div class="st">방향 잡고 반접기</div><div class="ep">50개 · 92,628프레임</div><div class="res">20,000스텝 학습 완료</div></div>
+    <div class="box"><div class="st">반접기</div><div class="ep">97개 · 57,771프레임</div><div class="res">학습 도중 중단</div></div>
+    <div class="box"><div class="st">대문접기</div><div class="ep">147개 · 155,069프레임</div><div class="res">시작 전</div></div>
+  </div>
+  <div class="why">
+    <div><b class="acc">왜 접었나.</b> 정책 네 개를 순서대로 이어 붙이면, 앞 정책이 남긴 수건 모양이 다음 정책이 본 적 없는 모양일 때 실패가 그대로 쌓입니다.</div>
+    <div>단계별 학습량도 부족했습니다. 20,000스텝은 데이터를 <b>0.44~1.8바퀴</b>만 돈 양이라, 늘려도 성공확률이 크게 오를 것 같지 않았습니다.</div>
+  </div>
+  <div class="pg">1 / 2</div>
+  <aside class="cur"></aside>
+</section>
+
+<section class="slide">
+  <h1>펼친 수건을 반접고 대문접기까지, 정책 하나로 다시 학습합니다</h1>
+  <p class="sub">기존 데이터를 다시 잘라, 한 에피소드가 두 동작을 끊김 없이 담도록 했습니다</p>
+  <div class="two">
+    <div>
+      <div class="row"><span>원본 에피소드</span><span>46개</span></div>
+      <div class="row"><span>복제 포함 에피소드</span><span>97개</span></div>
+      <div class="row"><span>프레임</span><span>159,084개</span></div>
+      <div class="row"><span>학습 / 평가</span><span>79 / 18</span></div>
+      <div class="row"><span>학습 스텝</span><span>40,000</span></div>
+      <p class="k" style="margin-top:22px;line-height:1.5">평가는 원본 에피소드 단위로 나눠, 같은 영상이 학습과 평가에 섞이지 않게 했습니다.</p>
+    </div>
+    <ul class="tl">
+      <li class="now"><span class="t acc">진행 중</span>데이터 다시 자르기</li>
+      <li><span class="t">다음</span>ACT 학습 · 10,000스텝마다 평가 (약 3시간)</li>
+      <li><span class="t">그다음</span>실제 로봇으로 30회 시도해 성공률 측정</li>
+      <li class="dim"><span class="t">이후</span>실패 원인 분석, 시뮬레이션에서 보강</li>
+    </ul>
+  </div>
+  <div class="pg">2 / 2</div>
+  <aside class="cur"></aside>
+</section>
+</div>
+
+<!-- 발표 대본 (N 키로 표시). 슬라이드당 약 2분 -->
+<template id="n1">
+저희는 SO-101 양팔 로봇으로 수건 접기를 학습시키고 있습니다. 처음에는 이 일을 네 단계로 나눴습니다. 수건 펴기, 방향을 잡으며 반접기, 그냥 반접기, 대문접기입니다. 원본 에피소드 72개를 균형 있게 복제해 150개로 늘렸고, 단계마다 데이터셋을 따로 잘랐습니다. 화면의 숫자가 단계별 에피소드와 프레임 수입니다. 펴기와 방향 잡기는 각각 2만 스텝 학습을 마쳤고, 반접기는 학습 도중에 멈췄습니다.
+멈춘 이유는 두 가지입니다. 첫째, 정책 네 개를 이어 붙이면 앞 단계가 만든 수건 모양이 다음 단계가 본 적 없는 모양일 수 있고, 그러면 실패가 그대로 쌓입니다. 둘째, 학습량이 부족했습니다. 2만 스텝은 배치 4 기준으로 데이터를 0.44바퀴에서 1.8바퀴 도는 양입니다. 이 상태로 단계만 늘려서는 성공확률이 크게 오를 것 같지 않다고 판단해서, 방향을 바꿨습니다.
+</template>
+<template id="n2">
+그래서 태스크를 하나로 합쳤습니다. 수건이 깨끗이 펼쳐진 상태에서 시작해 반접기를 하고, 이어서 대문접기까지 하는 한 정책입니다. 방향을 다시 잡아야 하는 에피소드는 뺐습니다. 원본 46개에서 복제 포함 97개 에피소드, 약 15만 9천 프레임이 나왔고, 79개로 학습하고 18개로 평가합니다. 평가는 원본 에피소드 단위로 나눠서 같은 영상이 양쪽에 섞이지 않습니다.
+현재는 이 데이터를 다시 자르는 중입니다. 끝나면 ACT를 4만 스텝 학습합니다. 8기가 GPU에서 약 3시간이고, 1만 스텝마다 평가합니다. 그다음이 진짜 검증입니다. 실제 로봇으로 30번 시도해서 성공률을 재겠습니다. 손실값이 내려가도 성공률이 오른다는 보장은 없어서, 이 숫자가 나와야 이번 변경이 맞았는지 말할 수 있습니다. 실패한다면 원인을 분석하고, 시뮬레이션에서 수건 시나리오를 늘려 보강할 계획입니다. 지금 성공률은 아직 측정 전입니다.
+</template>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')],stage=document.getElementById('stage');
+let i=0;
+slides.forEach((s,k)=>{s.querySelector('aside').textContent=document.getElementById('n'+(k+1)).content.textContent.trim()});
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${s})`}
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('on',k===i))}
+addEventListener('resize',fit);fit();
+addEventListener('keydown',e=>{
+  if(['ArrowRight','PageDown',' '].includes(e.key))show(i+1);
+  else if(['ArrowLeft','PageUp'].includes(e.key))show(i-1);
+  else if(e.key==='n'||e.key==='N')document.body.classList.toggle('notes');
+  else if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+});
+</script>
+</body>
+</html>
