@@ -131,6 +131,8 @@ def build_training_command(
     pretrained_path: str | None = None,
     policy: str = "act",
     steps: int = 20_000,
+    batch_size: int = 4,
+    save_freq: int = 5000,
     eval_split: float | None = None,
     image_augmentation: bool = False,
     smoke_train_episodes: int | None = None,
@@ -166,11 +168,11 @@ def build_training_command(
         "--policy.use_amp=true",
         f"--output_dir={output_dir}",
         f"--job_name={policy}_towel_stage_{stage}",
-        "--batch_size=4",
+        f"--batch_size={batch_size}",
         "--num_workers=2",
         f"--steps={steps}",
         "--log_freq=1",
-        "--save_freq=5000",
+        f"--save_freq={save_freq}",
         "--eval_steps=10000",
     ]
     if image_augmentation:
@@ -199,6 +201,8 @@ def main() -> None:
     parser.add_argument("--pretrained-path")
     parser.add_argument("--policy", choices=("act", "smolvla"), default="act")
     parser.add_argument("--steps", type=int, default=20_000)
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--save-freq", type=int, default=5000)
     parser.add_argument("--eval-split", type=float)
     parser.add_argument("--image-augmentation", action="store_true")
     parser.add_argument("--smoke-train-episodes", type=int)
